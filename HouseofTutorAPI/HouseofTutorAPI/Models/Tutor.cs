@@ -1,0 +1,51 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace HouseofTutorAPI.Models;
+
+public partial class Tutor
+{
+    public int TutorId { get; set; }
+
+    public int? UserId { get; set; }
+
+    public string? Qualification { get; set; }
+
+    public int? Experience { get; set; }
+
+    public string? Location { get; set; }
+
+    public int? Radius { get; set; }
+
+    public string? Status { get; set; }
+
+    public double? Latitude { get; set; }
+
+    public double? Longitude { get; set; }
+
+    public string? TeachingMode { get; set; }
+
+    public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+
+    public virtual ICollection<LtRoomBooking> LtRoomBookings { get; set; } = new List<LtRoomBooking>();
+
+    public virtual ICollection<RequestCoursePlan> RequestCoursePlans { get; set; } = new List<RequestCoursePlan>();
+
+    public virtual ICollection<Request> Requests { get; set; } = new List<Request>();
+
+    public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+
+    public virtual ICollection<StudentCourseFee> StudentCourseFees { get; set; } = new List<StudentCourseFee>();
+
+    public virtual ICollection<StudyGroup> StudyGroups { get; set; } = new List<StudyGroup>();
+
+    public virtual ICollection<TutorCourseRate> TutorCourseRates { get; set; } = new List<TutorCourseRate>();
+
+    public virtual ICollection<TutorCourse> TutorCourses { get; set; } = new List<TutorCourse>();
+
+    public virtual ICollection<TutorPreviousTeacher> TutorPreviousTeachers { get; set; } = new List<TutorPreviousTeacher>();
+
+    //public virtual ICollection<TutorTranscript> TutorTranscripts { get; set; } = new List<TutorTranscript>();
+
+    public virtual User? User { get; set; }
+}

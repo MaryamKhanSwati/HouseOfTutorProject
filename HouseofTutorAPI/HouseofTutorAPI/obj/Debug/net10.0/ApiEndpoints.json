@@ -1,0 +1,1895 @@
+[
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "AddLTRoom",
+    "RelativePath": "api/Admin/add-lt-room",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "AddLTRoomRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "AddSubject",
+    "RelativePath": "api/Admin/add-subject",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "AddSubjectDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetAllClasses",
+    "RelativePath": "api/Admin/all-classes",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetAllFeedback",
+    "RelativePath": "api/Admin/all-feedback",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetAllStudents",
+    "RelativePath": "api/Admin/all-students",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetAllSubjects",
+    "RelativePath": "api/Admin/all-subjects",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetAllTutors",
+    "RelativePath": "api/Admin/all-tutors",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetAllTutorsCourses",
+    "RelativePath": "api/Admin/all-tutors-courses",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "ApproveTutor",
+    "RelativePath": "api/Admin/approve-tutor/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetApprovedTutors",
+    "RelativePath": "api/Admin/approved-tutors",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "BlockStudent",
+    "RelativePath": "api/Admin/block-student/{studentId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "studentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "BlockTutor",
+    "RelativePath": "api/Admin/block-tutor/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetBlockedStudents",
+    "RelativePath": "api/Admin/blocked-students",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetBlockedUsers",
+    "RelativePath": "api/Admin/blocked-tutors",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetAdminDashboard",
+    "RelativePath": "api/Admin/dashboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "DeleteFeedback",
+    "RelativePath": "api/Admin/delete-feedback/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "DeleteLTRoom",
+    "RelativePath": "api/Admin/delete-lt-room/{roomId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "roomId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "DeleteSubject",
+    "RelativePath": "api/Admin/delete-subject/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetLTRooms",
+    "RelativePath": "api/Admin/get-lt-rooms",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetNotificationCount",
+    "RelativePath": "api/Admin/notification-count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetPendingTutorCourses",
+    "RelativePath": "api/Admin/pending-tutor-courses",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "RejectStudent",
+    "RelativePath": "api/Admin/reject-student/{studentId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "studentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "RejectTutor",
+    "RelativePath": "api/Admin/reject-tutor/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "RestoreStudent",
+    "RelativePath": "api/Admin/restore-student/{studentId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "studentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "RestoreUser",
+    "RelativePath": "api/Admin/restore-user/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "SetRateByExperience",
+    "RelativePath": "api/Admin/set-rate-by-experience",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "ExperienceRateDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "SetRateByQualification",
+    "RelativePath": "api/Admin/set-rate-by-qualification",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "QualificationRateDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "SetRateByRating",
+    "RelativePath": "api/Admin/set-rate-by-rating",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "RatingRateDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "SetRateByStudents",
+    "RelativePath": "api/Admin/set-rate-by-students",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "StudentCountRateDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "SetRateByTutorCourse",
+    "RelativePath": "api/Admin/set-rate-by-tutor-course",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "TutorCourseRateDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "GetTutor",
+    "RelativePath": "api/Admin/tutor/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "UpdateLTRoom",
+    "RelativePath": "api/Admin/update-lt-room/{roomId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "roomId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "model",
+        "Type": "UpdateLTRoomRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "UpdateSubject",
+    "RelativePath": "api/Admin/update-subject/{courseId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "UpdateSubjectDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AdminController",
+    "Method": "VerifyTutorCourse",
+    "RelativePath": "api/Admin/verify-tutor-course/{evidenceId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "evidenceId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "VerifyTutorCourseDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AuthController",
+    "Method": "Login",
+    "RelativePath": "api/Auth/login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.LoginDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AuthController",
+    "Method": "Register",
+    "RelativePath": "api/Auth/register",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.RegisterDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.AuthController",
+    "Method": "UpdateLocation",
+    "RelativePath": "api/Auth/update-location",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.UpdateLocationDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.ParentController",
+    "Method": "ChildClasses",
+    "RelativePath": "api/Parent/child-classes/{studentId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "studentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.ParentController",
+    "Method": "ChildClasses",
+    "RelativePath": "api/Parent/child-classes/{studentId}/{courseId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "studentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "courseId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.ParentController",
+    "Method": "ChildCourses",
+    "RelativePath": "api/Parent/child-courses/{studentId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "studentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.ParentController",
+    "Method": "ChildProfile",
+    "RelativePath": "api/Parent/child-profile/{studentId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "studentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.ParentController",
+    "Method": "ChildSchedule",
+    "RelativePath": "api/Parent/child-schedule/{studentId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "studentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.ParentController",
+    "Method": "ChildTutors",
+    "RelativePath": "api/Parent/child-tutors/{studentId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "studentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.ParentController",
+    "Method": "GetChildrenFee",
+    "RelativePath": "api/Parent/children-fee",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.ParentController",
+    "Method": "GetMyChildren",
+    "RelativePath": "api/Parent/my-children",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.ParentController",
+    "Method": "SendPayment",
+    "RelativePath": "api/Parent/send-payment",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "HouseofTutorAPI.Controllers.PaymentRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "AcceptFriendRequest",
+    "RelativePath": "api/Student/accept-friend-request",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BFriendRequestActionRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "AcceptPreschedule",
+    "RelativePath": "api/Student/accept-preschedule/{requestId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "requestId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "AcceptReschedule",
+    "RelativePath": "api/Student/accept-reschedule/{requestId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "requestId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "AddStudentCourses",
+    "RelativePath": "api/Student/add-courses",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BAddStudentCoursesDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "AddFriend",
+    "RelativePath": "api/Student/add-friend",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BAddFriendRequest",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "AddStudyGroupMember",
+    "RelativePath": "api/Student/add-study-group-member",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BAddStudyGroupMemberDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetAllClasses",
+    "RelativePath": "api/Student/all-classes",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetAllCourses",
+    "RelativePath": "api/Student/all-courses",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "search",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetAllFriends",
+    "RelativePath": "api/Student/all-friends",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetAvailableRescheduleSlots",
+    "RelativePath": "api/Student/available-slots/{requestId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "requestId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "CreatePreschedule",
+    "RelativePath": "api/Student/create-preschedule",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.RescheduleRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "CreateRequest",
+    "RelativePath": "api/Student/create-request",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BCreateRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "CreateReschedule",
+    "RelativePath": "api/Student/create-reschedule",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.RescheduleRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "CreateStudyGroup",
+    "RelativePath": "api/Student/create-study-group",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BCreateStudyGroupDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "DeleteCourseContent",
+    "RelativePath": "api/Student/delete-course-content/{contentId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "contentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "DeleteStudentCourse",
+    "RelativePath": "api/Student/delete-course/{courseId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "DeleteFeedback",
+    "RelativePath": "api/Student/delete-feedback/{feedbackId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "feedbackId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "EditStudentProfile",
+    "RelativePath": "api/Student/edit-profile",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BEditStudentProfileDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetEligibleGroupStudents",
+    "RelativePath": "api/Student/eligible-group-students",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "tutorId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "courseId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "studyGroupId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetFriendRequests",
+    "RelativePath": "api/Student/friend-requests",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetStudentSchedule",
+    "RelativePath": "api/Student/get-student-schedule",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetStudentSchedules",
+    "RelativePath": "api/Student/get-student-schedules",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GiveFeedback",
+    "RelativePath": "api/Student/give-feedback",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BStudentFeedbackRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetMyCourseContent",
+    "RelativePath": "api/Student/my-course-content/{courseId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetStudentCourses",
+    "RelativePath": "api/Student/my-courses",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetStudentCoursesForStudentAddCourses",
+    "RelativePath": "api/Student/my-courses-for-student-add-courses",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetMyGroupInvitations",
+    "RelativePath": "api/Student/my-group-invitations",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetStudentProfile",
+    "RelativePath": "api/Student/my-profile",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetMyStudyGroups",
+    "RelativePath": "api/Student/my-study-groups",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetMyTutors",
+    "RelativePath": "api/Student/my-tutors",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetNonVisitingGroupTutorCourses",
+    "RelativePath": "api/Student/non-visiting-group-tutor-courses",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "tutorId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetNonVisitingGroupTutors",
+    "RelativePath": "api/Student/non-visiting-group-tutors",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetNotificationBadgeCount",
+    "RelativePath": "api/Student/notification-badge-count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetPreRescheduleRequests",
+    "RelativePath": "api/Student/pre-reschedule-requests",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "RejectFriendRequest",
+    "RelativePath": "api/Student/reject-friend-request",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BFriendRequestActionRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "RejectRequest",
+    "RelativePath": "api/Student/reject-request/{requestId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "requestId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "RespondGroupInvitation",
+    "RelativePath": "api/Student/respond-group-invitation",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BRespondGroupInvitationDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "SaveGrade",
+    "RelativePath": "api/Student/save-grade",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BStudentGradeRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "SaveStudentSchedule",
+    "RelativePath": "api/Student/save-student-schedule",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BStudentSaveScheduleDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "SearchTutorByTimeAndLocation",
+    "RelativePath": "api/Student/search-by-time-location-visiting-tutor",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userLat",
+        "Type": "System.Double",
+        "IsRequired": false
+      },
+      {
+        "Name": "userLng",
+        "Type": "System.Double",
+        "IsRequired": false
+      },
+      {
+        "Name": "courseId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "sortBy",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "SearchNonVisitingTutors",
+    "RelativePath": "api/Student/search-non-visiting-tutors",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "sortBy",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "SearchStudents",
+    "RelativePath": "api/Student/search-students",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "name",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetStudentClassHistory",
+    "RelativePath": "api/Student/student-class-history",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetStudentFee",
+    "RelativePath": "api/Student/student-fee",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "SendStudentPayment",
+    "RelativePath": "api/Student/student-send-payment",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "HouseofTutorAPI.Controllers.PaymentRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "GetTodayClasses",
+    "RelativePath": "api/Student/today-classes",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "UpdateCourseContent",
+    "RelativePath": "api/Student/update-course-content/{contentId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "contentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "title",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "description",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "UpdateFeedback",
+    "RelativePath": "api/Student/update-feedback/{feedbackId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "feedbackId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "HouseofTutorAPI.Controllers.StudentController\u002BStudentUpdateFeedbackRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.StudentController",
+    "Method": "UploadCourseContent",
+    "RelativePath": "api/Student/upload-course-content",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "course_id",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "title",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "description",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "files",
+        "Type": "System.Collections.Generic.List\u00601[[Microsoft.AspNetCore.Http.IFormFile, Microsoft.AspNetCore.Http.Features, Version=10.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "AcceptReandPreScheduleRequest",
+    "RelativePath": "api/Tutor/accept-re-and-pre-schedule-request/{requestId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "requestId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "AcceptRequest",
+    "RelativePath": "api/Tutor/accept-request/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "AddTutorCourses",
+    "RelativePath": "api/Tutor/add-courses",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "Courses",
+        "Type": "System.Collections.Generic.List\u00601[[HouseofTutorAPI.Controllers.AddTutorCourseItemDto, HouseofTutorAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetAllClasses",
+    "RelativePath": "api/Tutor/all-classes",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetAllCourses",
+    "RelativePath": "api/Tutor/all-courses",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "CancelClass",
+    "RelativePath": "api/Tutor/cancel-class/{requestId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "requestId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetAllCancelClasses",
+    "RelativePath": "api/Tutor/cancel-classes",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "CompleteClass",
+    "RelativePath": "api/Tutor/complete-class/{requestId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "requestId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "CompleteCourse",
+    "RelativePath": "api/Tutor/complete-course",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "HouseofTutorAPI.Controllers.CompleteCourseRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "DeleteFeedback",
+    "RelativePath": "api/Tutor/delete-feedback/{feedbackId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "feedbackId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "EditTutorProfile",
+    "RelativePath": "api/Tutor/edit-profile",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.EditTutorProfileDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetSchedule",
+    "RelativePath": "api/Tutor/get-schedule",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GiveFeedback",
+    "RelativePath": "api/Tutor/give-feedback",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "HouseofTutorAPI.Controllers.TutorFeedbackRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "ManualSchedule",
+    "RelativePath": "api/Tutor/manual-schedule",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.ManualScheduleDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "MarkCourseDone",
+    "RelativePath": "api/Tutor/mark-course-done",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "HouseofTutorAPI.Controllers.MarkCourseDoneRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetTutorCourses",
+    "RelativePath": "api/Tutor/my-courses",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetTutorCoursesForMarkDone",
+    "RelativePath": "api/Tutor/my-courses-for-mark-as-done",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetTutorDashboard",
+    "RelativePath": "api/Tutor/my-dashboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetTutorProfile",
+    "RelativePath": "api/Tutor/my-profile",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetMyRequests",
+    "RelativePath": "api/Tutor/my-requests",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetMyStudents",
+    "RelativePath": "api/Tutor/my-students",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetNotificationBadgeCount",
+    "RelativePath": "api/Tutor/notification-badge-count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetNotifications",
+    "RelativePath": "api/Tutor/notifications",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "PaymentList",
+    "RelativePath": "api/Tutor/payment-list",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "UpdatePaymentStatus",
+    "RelativePath": "api/Tutor/payment-status",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "HouseofTutorAPI.Controllers.PaymentStatusModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "AutoPreschedule",
+    "RelativePath": "api/Tutor/preschedule",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.AutoScheduleDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "RejectReandPreScheduleRequest",
+    "RelativePath": "api/Tutor/reject-re-and-pre-schedule-request/{requestId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "requestId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "RejectRequest",
+    "RelativePath": "api/Tutor/reject-request/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "AutoReschedule",
+    "RelativePath": "api/Tutor/reschedule",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.AutoScheduleDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "SaveSchedule",
+    "RelativePath": "api/Tutor/save-schedule",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "HouseofTutorAPI.Controllers.SaveScheduleDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetStudentProfile",
+    "RelativePath": "api/Tutor/student-profile/{studentId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "studentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetTodayClasses",
+    "RelativePath": "api/Tutor/today-classes",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetTutorClassHistory",
+    "RelativePath": "api/Tutor/tutor-class-history",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "GetTutorCourseContent",
+    "RelativePath": "api/Tutor/tutor-course-content/{studentId}/{courseId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "studentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "courseId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HouseofTutorAPI.Controllers.TutorController",
+    "Method": "UpdateFeedback",
+    "RelativePath": "api/Tutor/update-feedback/{feedbackId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "feedbackId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "HouseofTutorAPI.Controllers.TutorUpdateFeedbackRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

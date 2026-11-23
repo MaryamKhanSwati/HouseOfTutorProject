@@ -1,0 +1,3071 @@
+﻿using HouseofTutorAPI.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Security.Claims;
+
+namespace HouseofTutorAPI.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AdminController : ControllerBase
+    {
+        private readonly HouseofTutorDbContext db;
+
+        public AdminController(HouseofTutorDbContext _db)
+        {
+            db = _db;
+        }
+
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> GetAdminDashboard()
+        {
+            try
+            {
+                var totalTutors =
+                    await db.Tutors.CountAsync();
+
+                var totalStudents =
+                    await db.Students.CountAsync();
+
+                var totalClasses =
+                    await db.Requests
+                        .Where(r => r.Status == "Accepted")
+                        .CountAsync();
+
+                var totalSubjects =
+                    await db.Courses.CountAsync();
+
+                return Ok(new
+                {
+                    totalTutors = totalTutors,
+                    totalStudents = totalStudents,
+                    totalClasses = totalClasses,
+                    totalSubjects = totalSubjects
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Something went wrong",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("all-tutors")]// Get All Pending Tutor
+        public async Task<IActionResult> GetAllTutors()
+        {
+            try
+            {
+                var tutors = await db.Tutors
+                    .Where(t => t.Status == "Pending")
+                    .Include(t => t.User)
+                    .Select(t => new
+                    {
+                        tutorId = t.TutorId,
+                        userId = t.UserId,
+
+                        // From Users table
+                        fullName = t.User.FullName,
+                        email = t.User.Email,
+                        phone = t.User.Phone,
+                        cnic = t.User.Cnic,
+
+                        // From Tutor table
+                        qualification = t.Qualification,
+                        experience = t.Experience,
+                        location = t.Location,
+                        radius = t.Radius,
+                        latitude = t.Latitude,
+                        longitude = t.Longitude,
+
+                        status = t.Status
+                    })
+                    .ToListAsync();
+
+                return Ok(tutors);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error loading approved tutors",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+        [HttpGet("tutor/{id}")] //View Tutor Details 
+        public async Task<IActionResult> GetTutor(int id)
+        {
+            var tutor = await db.Tutors
+                .Include(x => x.User)
+                .Include(x => x.TutorCourses)
+                    .ThenInclude(x => x.Course)
+                .FirstOrDefaultAsync(x => x.TutorId == id);
+
+            if (tutor == null)
+                return NotFound(new { message = "Tutor not found." });
+
+            var result = new
+            {
+                id = tutor.TutorId,
+
+                fullName = tutor.User.FullName,
+                email = tutor.User.Email,
+                phone = tutor.User.Phone,
+                cnic = tutor.User.Cnic,
+
+                qualification = tutor.Qualification,
+                experience = tutor.Experience,
+                location = tutor.Location,
+                radius = tutor.Radius,
+
+                status = tutor.Status,
+
+                subjects = tutor.TutorCourses
+                    .Select(x => x.Course.CourseTitle)
+                    .ToList(),
+
+                rating = db.Feedbacks
+                    .Where(x => x.TutorId == tutor.TutorId)
+                    .Average(x => (double?)x.Rating) ?? 0,
+
+                totalReviews = db.Feedbacks
+                    .Count(x => x.TutorId == tutor.TutorId)
+            };
+
+            return Ok(result);
+        }
+
+        //Approve Tutor
+        [HttpPut("approve-tutor/{id}")]
+        public async Task<IActionResult> ApproveTutor(int id)
+        {
+            var tutor = await db.Tutors.FindAsync(id);
+
+            if (tutor == null)
+                return NotFound(new { message = "Tutor not found." });
+
+            tutor.Status = "Approved";
+
+            await db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Tutor approved successfully."
+            });
+        }
+
+        //Reject Tutor
+        [HttpPut("reject-tutor/{id}")]
+        public async Task<IActionResult> RejectTutor(int id)
+        {
+            var tutor = await db.Tutors.FindAsync(id);
+
+            if (tutor == null)
+                return NotFound(new { message = "Tutor not found." });
+
+            tutor.Status = "Rejected";
+
+            await db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Tutor rejected successfully."
+            });
+        }
+
+        //Block Tutor
+        [HttpPut("block-tutor/{id}")]
+        public async Task<IActionResult> BlockTutor(int id)
+        {
+            var tutor = await db.Tutors.FindAsync(id);
+
+            if (tutor == null)
+                return NotFound(new { message = "Tutor not found." });
+
+            tutor.Status = "Blocked";
+
+            await db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Tutor blocked successfully."
+            });
+        }
+
+        //get only approved Tutor's
+        [HttpGet("approved-tutors")]
+        public async Task<IActionResult> GetApprovedTutors()
+        {
+            try
+            {
+                var tutors = await db.Tutors
+                    .Where(t => t.Status == "Approved")
+                    .Select(t => new
+                    {
+                        id = t.TutorId,
+                        fullName = t.User.FullName,
+                        status = t.Status
+                    })
+                    .ToListAsync();
+
+                return Ok(tutors);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error loading approved tutors",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+        [HttpGet("blocked-tutors")]
+        public async Task<IActionResult> GetBlockedUsers()
+        {
+            var tutors = await db.Tutors
+                .Include(t => t.User)
+                .Where(t => t.Status == "Blocked")
+                .Select(t => new
+                {
+                    id = t.TutorId,
+                    fullName = t.User.FullName,
+                    email = t.User.Email,
+
+                    // Phone number
+                    phone = t.User.Phone,
+
+                    // CNIC
+                    cnic = t.User.Cnic,
+
+                    // Location
+                    location = t.Location
+                })
+                .ToListAsync();
+
+            return Ok(tutors);
+        }
+
+        //Restore blocked Tutor
+        [HttpPut("restore-user/{id}")]
+        public async Task<IActionResult> RestoreUser(int id)
+        {
+            var tutor = await db.Tutors.FindAsync(id);
+
+            if (tutor == null)
+            {
+                return NotFound(new
+                {
+                    message = "Tutor not found."
+                });
+            }
+
+            tutor.Status = "Approved";
+
+            await db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Tutor restored successfully."
+            });
+        }
+
+        //[HttpGet("all-students")]
+        //public async Task<IActionResult> GetAllStudents()
+        //{
+        //    try
+        //    {
+        //        var students = await db.Students
+        //            .Include(s => s.User)
+        //            .Select(s => new
+        //            {
+        //                id = s.StudentId,
+
+        //                userId = s.UserId,
+
+        //                fullName = s.User.FullName,
+
+        //                email = s.User.Email,
+
+        //                phone = s.User.Phone,
+
+        //                cnic = s.User.Cnic,
+
+        //                role = s.User.Role,
+
+        //                location = s.Location,
+
+        //                latitude = s.Latitude,
+
+        //                longitude = s.Longitude
+        //            })
+        //            .ToListAsync();
+
+        //        return Ok(students);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new
+        //        {
+        //            message = "Error loading students",
+        //            error = ex.Message
+        //        });
+        //    }
+        //}
+
+        [HttpGet("all-students")]
+        public async Task<IActionResult> GetAllStudents()
+        {
+            try
+            {
+                var students = await db.Students
+                    .Include(s => s.User)
+                    .Where(s =>
+                        s.Status == null ||
+                        (s.Status.ToLower() != "blocked" &&
+                         s.Status.ToLower() != "rejected"))
+                    .Select(s => new
+                    {
+                        id = s.StudentId,
+                        userId = s.UserId,
+                        fullName = s.User.FullName,
+                        email = s.User.Email,
+                        phone = s.User.Phone,
+                        cnic = s.User.Cnic,
+                        role = s.User.Role,
+                        status = s.Status,
+                        location = s.Location,
+                        latitude = s.Latitude,
+                        longitude = s.Longitude
+                    })
+                    .ToListAsync();
+
+                return Ok(students);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error loading students",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+
+        [HttpPut("block-student/{studentId}")]
+        public async Task<IActionResult> BlockStudent(int studentId)
+        {
+            try
+            {
+                var student = await db.Students
+                    .FirstOrDefaultAsync(s => s.StudentId == studentId);
+
+                if (student == null)
+                {
+                    return NotFound(new
+                    {
+                        message = "Student not found"
+                    });
+                }
+
+                student.Status = "Blocked";
+
+                await db.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Student blocked successfully",
+                    studentId = student.StudentId,
+                    status = student.Status
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error blocking student",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+        [HttpPut("reject-student/{studentId}")]
+        public async Task<IActionResult> RejectStudent(int studentId)
+        {
+            try
+            {
+                var student = await db.Students
+                    .FirstOrDefaultAsync(s => s.StudentId == studentId);
+
+                if (student == null)
+                {
+                    return NotFound(new
+                    {
+                        message = "Student not found"
+                    });
+                }
+
+                student.Status = "Rejected";
+
+                await db.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Student rejected successfully",
+                    studentId = student.StudentId,
+                    status = student.Status
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error rejecting student",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+        [HttpGet("blocked-students")]
+        public async Task<IActionResult> GetBlockedStudents()
+        {
+            try
+            {
+                var blockedStudents = await db.Students
+                    .Where(s => s.Status == "Blocked")
+                    .Include(s => s.User)
+                    .Select(s => new
+                    {
+                        studentId = s.StudentId,
+                        userId = s.UserId,
+
+                        fullName = s.User.FullName,
+                        email = s.User.Email,
+                        phone = s.User.Phone,
+                        cnic = s.User.Cnic,
+
+                        location = s.Location,
+                        fatherCnic = s.FatherCnic,
+
+                        status = s.Status
+                    })
+                    .ToListAsync();
+
+                return Ok(blockedStudents);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error getting blocked students",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+        [HttpPut("restore-student/{studentId}")]
+        public async Task<IActionResult> RestoreStudent(int studentId)
+        {
+            try
+            {
+                var student = await db.Students
+                    .FirstOrDefaultAsync(s => s.StudentId == studentId);
+
+                if (student == null)
+                {
+                    return NotFound(new
+                    {
+                        message = "Student not found"
+                    });
+                }
+
+                // Make sure only blocked students are restored
+                if (student.Status != "Blocked")
+                {
+                    return BadRequest(new
+                    {
+                        message = "Student is not currently blocked"
+                    });
+                }
+
+                student.Status = "Active";
+
+                await db.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Student restored successfully",
+                    studentId = student.StudentId,
+                    status = student.Status
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error restoring student",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+        [HttpGet("all-classes")]
+        public async Task<IActionResult> GetAllClasses()
+        {
+            try
+            {
+                var classes = await db.Requests
+                    .Include(r => r.Student)
+                        .ThenInclude(s => s.User)
+                    .Include(r => r.Tutor)
+                        .ThenInclude(t => t.User)
+                    .Include(r => r.Course)
+                    .Select(r => new
+                    {
+                        id = r.RequestId,
+
+                        studentName = r.Student.User.FullName,
+
+                        tutorName = r.Tutor.User.FullName,
+
+                        subjectName = r.Course.CourseTitle,
+
+                        classTime = r.RequestDate,
+
+                        status = r.Status
+                    })
+                    .OrderByDescending(x => x.id)
+                    .ToListAsync();
+
+                return Ok(classes);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error loading classes",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+        [HttpGet("all-feedback")]
+        public async Task<IActionResult> GetAllFeedback()
+        {
+            try
+            {
+                var feedbacks = await db.Feedbacks
+                    .Include(f => f.Student)
+                        .ThenInclude(s => s.User)
+                    .Include(f => f.Tutor)
+                        .ThenInclude(t => t.User)
+                    .Include(f => f.Course)
+                    .OrderByDescending(f => f.FeedbackId)
+                    .Select(f => new
+                    {
+                        id = f.FeedbackId,
+
+                        studentName = f.Student != null && f.Student.User != null
+                            ? f.Student.User.FullName
+                            : "",
+
+                        tutorName = f.Tutor != null && f.Tutor.User != null
+                            ? f.Tutor.User.FullName
+                            : "",
+
+                        courseName = f.Course != null
+                            ? f.Course.CourseTitle
+                            : "",
+
+                        feedbackText = f.Comment ?? "",
+
+                        rating = f.Rating ?? 0,
+
+                        date = f.FeedbackDate.HasValue
+                            ? f.FeedbackDate.Value.ToString("yyyy-MM-dd")
+                            : "",
+
+                        time = f.FeedbackDate.HasValue
+                            ? f.FeedbackDate.Value.ToString("hh:mm tt")
+                            : "",
+
+                        feedbackBy = f.FeedbackBy ?? ""
+                    })
+                    .ToListAsync();
+
+                return Ok(feedbacks);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Failed to load feedback.",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+
+        [HttpDelete("delete-feedback/{id}")]
+        public async Task<IActionResult> DeleteFeedback(int id)
+        {
+            try
+            {
+                var feedback = await db.Feedbacks
+                    .FirstOrDefaultAsync(f => f.FeedbackId == id);
+
+                if (feedback == null)
+                {
+                    return NotFound(new
+                    {
+                        message = "Feedback not found."
+                    });
+                }
+
+                db.Feedbacks.Remove(feedback);
+
+                await db.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Feedback deleted successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Unable to delete feedback.",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+        [HttpGet("all-subjects")]
+        public async Task<IActionResult> GetAllSubjects()
+        {
+            try
+            {
+                var subjects = await db.Courses
+                    .Select(c => new
+                    {
+                        id = c.CourseId,
+                        courseTitle = c.CourseTitle,
+
+                        minRate = c.AdminSetMinHourlyRate,
+                        maxRate = c.AdminSetMaxHourlyRate,
+
+                        // Admin course duration
+                        standardDurationWeeks = c.StandardDurationWeeks,
+
+                        // Admin classes per week
+                        standardClassesPerWeek = c.StandardClassesPerWeek,
+
+                        // Automatically calculated total classes
+                        totalStandardClasses =
+                            c.StandardDurationWeeks * c.StandardClassesPerWeek,
+
+                        courseCodes = db.CourseCodes
+                            .Where(cc => cc.CourseId == c.CourseId)
+                            .Select(cc => new
+                            {
+                                courseCodeId = cc.CourseCodeId,
+                                institute = cc.Institute,
+                                courseCode = cc.CourseCode1,
+                                program = cc.Program,
+                                description = cc.Description
+                            })
+                            .ToList()
+                    })
+                    .ToListAsync();
+
+                return Ok(subjects);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error loading subjects",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+        [HttpPost("add-subject")]
+        public async Task<IActionResult> AddSubject([FromBody] AddSubjectDTO dto)
+        {
+            try
+            {
+                if (dto == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid request."
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(dto.CourseTitle))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Course title is required."
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(dto.Institute))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Institute name is required."
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(dto.CourseCode))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Course code is required."
+                    });
+                }
+
+                // Validate Admin course duration
+                if (dto.StandardDurationWeeks <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Course duration must be greater than zero."
+                    });
+                }
+
+                // Validate weekly classes
+                if (dto.StandardClassesPerWeek <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Classes per week must be greater than zero."
+                    });
+                }
+
+                string courseTitle = dto.CourseTitle.Trim();
+
+                string institute = dto.Institute.Trim();
+
+                string courseCode = dto.CourseCode.Trim().ToUpper();
+
+                string program = string.IsNullOrWhiteSpace(dto.Program)
+                    ? null
+                    : dto.Program.Trim();
+
+                string description = string.IsNullOrWhiteSpace(dto.Description)
+                    ? null
+                    : dto.Description.Trim();
+
+                // Check duplicate university course code
+                var existingCourseCode = await db.CourseCodes
+                    .FirstOrDefaultAsync(c =>
+                        c.Institute.ToLower() == institute.ToLower() &&
+                        c.CourseCode1.ToLower() == courseCode.ToLower() &&
+                        (
+                            (c.Program == null && program == null) ||
+                            (
+                                c.Program != null &&
+                                program != null &&
+                                c.Program.ToLower() == program.ToLower()
+                            )
+                        ));
+
+                if (existingCourseCode != null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "This course code already exists for this institute and program."
+                    });
+                }
+
+                // Check common course
+                var course = await db.Courses
+                    .FirstOrDefaultAsync(c =>
+                        c.CourseTitle.ToLower() == courseTitle.ToLower());
+
+                bool courseCreated = false;
+
+                // Create new common course
+                if (course == null)
+                {
+                    if (!dto.MinRate.HasValue ||
+                        !dto.MaxRate.HasValue)
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Minimum and maximum rates are required for a new course."
+                        });
+                    }
+
+                    if (dto.MinRate.Value < 0 ||
+                        dto.MaxRate.Value < 0)
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Rates cannot be negative."
+                        });
+                    }
+
+                    if (dto.MinRate.Value > dto.MaxRate.Value)
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Minimum rate cannot be greater than maximum rate."
+                        });
+                    }
+
+                    course = new Course
+                    {
+                        CourseTitle = courseTitle,
+
+                        AdminSetMinHourlyRate = dto.MinRate.Value,
+
+                        AdminSetMaxHourlyRate = dto.MaxRate.Value,
+
+                        // NEW ADMIN SETTINGS
+                        StandardDurationWeeks = dto.StandardDurationWeeks,
+
+                        StandardClassesPerWeek = dto.StandardClassesPerWeek
+                    };
+
+                    db.Courses.Add(course);
+
+                    await db.SaveChangesAsync();
+
+                    courseCreated = true;
+                }
+                else
+                {
+                    // Update the common course's standard plan.
+                    // Existing student plans remain unchanged because
+                    // their duration is saved separately in RequestCoursePlan.
+
+                    course.StandardDurationWeeks =
+                        dto.StandardDurationWeeks;
+
+                    course.StandardClassesPerWeek =
+                        dto.StandardClassesPerWeek;
+
+                    await db.SaveChangesAsync();
+                }
+
+                // Add university-specific course code
+                var courseCodeRecord = new CourseCode
+                {
+                    CourseId = course.CourseId,
+
+                    Institute = institute,
+
+                    CourseCode1 = courseCode,
+
+                    Program = program,
+
+                    Description = description
+                };
+
+                db.CourseCodes.Add(courseCodeRecord);
+
+                await db.SaveChangesAsync();
+
+                int totalClasses =
+                    dto.StandardDurationWeeks * dto.StandardClassesPerWeek;
+
+                return Ok(new
+                {
+                    success = true,
+
+                    message = "Course added successfully.",
+
+                    courseCreated = courseCreated,
+
+                    courseId = course.CourseId,
+
+                    courseTitle = course.CourseTitle,
+
+                    minRate = course.AdminSetMinHourlyRate,
+
+                    maxRate = course.AdminSetMaxHourlyRate,
+
+                    standardDurationWeeks = course.StandardDurationWeeks,
+
+                    standardClassesPerWeek = course.StandardClassesPerWeek,
+
+                    totalStandardClasses = totalClasses,
+
+                    courseCodeId = courseCodeRecord.CourseCodeId,
+
+                    institute = courseCodeRecord.Institute,
+
+                    courseCode = courseCodeRecord.CourseCode1,
+
+                    program = courseCodeRecord.Program,
+
+                    description = courseCodeRecord.Description
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error adding course.",
+
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+
+        [HttpPut("update-subject/{courseId}")]
+        public async Task<IActionResult> UpdateSubject(int courseId, [FromBody] UpdateSubjectDTO dto)
+        {
+            using var transaction = await db.Database.BeginTransactionAsync();
+
+            try
+            {
+                // =========================================
+                // 1. VALIDATE REQUEST
+                // =========================================
+
+                if (dto == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid request."
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(dto.CourseTitle))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Course title is required."
+                    });
+                }
+
+                if (dto.StandardDurationWeeks <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Course duration must be greater than zero."
+                    });
+                }
+
+                if (dto.StandardClassesPerWeek <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Classes per week must be greater than zero."
+                    });
+                }
+
+                // =========================================
+                // 2. FIND EXISTING SUBJECT
+                // =========================================
+
+                var course = await db.Courses
+                    .FirstOrDefaultAsync(c => c.CourseId == courseId);
+
+                if (course == null)
+                {
+                    return NotFound(new
+                    {
+                        message = "Subject not found."
+                    });
+                }
+
+                string courseTitle = dto.CourseTitle.Trim();
+
+                // =========================================
+                // 3. CHECK DUPLICATE SUBJECT TITLE
+                // =========================================
+
+                bool duplicateTitle = await db.Courses.AnyAsync(c =>
+                    c.CourseId != courseId &&
+                    c.CourseTitle.ToLower() == courseTitle.ToLower());
+
+                if (duplicateTitle)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Another subject with this title already exists."
+                    });
+                }
+
+                // =========================================
+                // 4. VALIDATE RATES
+                // =========================================
+
+                if (dto.MinRate.HasValue != dto.MaxRate.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Both minimum and maximum rates must be provided together."
+                    });
+                }
+
+                if (dto.MinRate.HasValue && dto.MaxRate.HasValue)
+                {
+                    if (dto.MinRate.Value < 0 || dto.MaxRate.Value < 0)
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Rates cannot be negative."
+                        });
+                    }
+
+                    if (dto.MinRate.Value > dto.MaxRate.Value)
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Minimum rate cannot be greater than maximum rate."
+                        });
+                    }
+
+                    course.AdminSetMinHourlyRate = dto.MinRate.Value;
+                    course.AdminSetMaxHourlyRate = dto.MaxRate.Value;
+                }
+
+                // =========================================
+                // 5. UPDATE COMMON SUBJECT DETAILS
+                // =========================================
+
+                course.CourseTitle = courseTitle;
+
+                course.StandardDurationWeeks =
+                    dto.StandardDurationWeeks;
+
+                course.StandardClassesPerWeek =
+                    dto.StandardClassesPerWeek;
+
+                // =========================================
+                // 6. UPDATE UNIVERSITY COURSE CODE
+                // =========================================
+
+                CourseCode courseCodeRecord = null;
+
+                bool hasCourseCodeDetails =
+                    !string.IsNullOrWhiteSpace(dto.Institute) ||
+                    !string.IsNullOrWhiteSpace(dto.CourseCode) ||
+                    dto.Program != null ||
+                    dto.Description != null;
+
+                if (dto.CourseCodeId.HasValue || hasCourseCodeDetails)
+                {
+                    if (!dto.CourseCodeId.HasValue)
+                    {
+                        return BadRequest(new
+                        {
+                            message = "CourseCodeId is required to update university course details."
+                        });
+                    }
+
+                    courseCodeRecord = await db.CourseCodes
+                        .FirstOrDefaultAsync(cc =>
+                            cc.CourseCodeId == dto.CourseCodeId.Value &&
+                            cc.CourseId == courseId);
+
+                    if (courseCodeRecord == null)
+                    {
+                        return NotFound(new
+                        {
+                            message = "University course code not found for this subject."
+                        });
+                    }
+
+                    if (string.IsNullOrWhiteSpace(dto.Institute))
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Institute name is required."
+                        });
+                    }
+
+                    if (string.IsNullOrWhiteSpace(dto.CourseCode))
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Course code is required."
+                        });
+                    }
+
+                    string institute = dto.Institute.Trim();
+                    string universityCourseCode =
+                        dto.CourseCode.Trim().ToUpper();
+
+                    string program = string.IsNullOrWhiteSpace(dto.Program)
+                        ? null
+                        : dto.Program.Trim();
+
+                    string description = string.IsNullOrWhiteSpace(dto.Description)
+                        ? null
+                        : dto.Description.Trim();
+
+                    // Check duplicate university course code
+                    bool duplicateCode = await db.CourseCodes.AnyAsync(cc =>
+                        cc.CourseCodeId != dto.CourseCodeId.Value &&
+                        cc.Institute.ToLower() == institute.ToLower() &&
+                        cc.CourseCode1.ToLower() == universityCourseCode.ToLower() &&
+                        (
+                            (cc.Program == null && program == null) ||
+                            (
+                                cc.Program != null &&
+                                program != null &&
+                                cc.Program.ToLower() == program.ToLower()
+                            )
+                        ));
+
+                    if (duplicateCode)
+                    {
+                        return BadRequest(new
+                        {
+                            message = "This course code already exists for this institute and program."
+                        });
+                    }
+
+                    courseCodeRecord.Institute = institute;
+                    courseCodeRecord.CourseCode1 = universityCourseCode;
+                    courseCodeRecord.Program = program;
+                    courseCodeRecord.Description = description;
+                }
+
+                // =========================================
+                // 7. SAVE CHANGES
+                // =========================================
+
+                await db.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                int totalClasses =
+                    course.StandardDurationWeeks *
+                    course.StandardClassesPerWeek;
+
+                return Ok(new
+                {
+                    success = true,
+
+                    message = "Subject updated successfully.",
+
+                    courseId = course.CourseId,
+
+                    courseTitle = course.CourseTitle,
+
+                    minRate = course.AdminSetMinHourlyRate,
+
+                    maxRate = course.AdminSetMaxHourlyRate,
+
+                    standardDurationWeeks =
+                        course.StandardDurationWeeks,
+
+                    standardClassesPerWeek =
+                        course.StandardClassesPerWeek,
+
+                    totalStandardClasses = totalClasses,
+
+                    courseCode = courseCodeRecord == null ? null : new
+                    {
+                        courseCodeId = courseCodeRecord.CourseCodeId,
+                        institute = courseCodeRecord.Institute,
+                        courseCode = courseCodeRecord.CourseCode1,
+                        program = courseCodeRecord.Program,
+                        description = courseCodeRecord.Description
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+
+                return StatusCode(500, new
+                {
+                    message = "Error updating subject.",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+
+        [HttpDelete("delete-subject/{id}")]
+        public async Task<IActionResult> DeleteSubject(int id)
+        {
+            try
+            {
+                var subject = await db.Courses
+                    .FirstOrDefaultAsync(c =>
+                        c.CourseId == id);
+
+                if (subject == null)
+                {
+                    return NotFound(new
+                    {
+                        message = "Subject not found"
+                    });
+                }
+
+                db.Courses.Remove(subject);
+
+                await db.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Subject deleted successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error deleting subject",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("all-tutors-courses")]
+        public async Task<IActionResult> GetAllTutorsCourses()
+        {
+            try
+            {
+                var tutors = await db.Tutors
+                    .Include(t => t.User)
+                    .ToListAsync();
+
+                var result = new List<object>();
+
+                foreach (var tutor in tutors)
+                {
+                    var courses = await
+                    (
+                        from tc in db.TutorCourses
+                        join c in db.Courses
+                            on tc.CourseId equals c.CourseId
+                        join r in db.TutorCourseRates
+                            on new { tc.TutorId, tc.CourseId }
+                            equals new { r.TutorId, r.CourseId }
+                            into rateJoin
+                        from rate in rateJoin.DefaultIfEmpty()
+
+                        where tc.TutorId == tutor.TutorId
+
+                        select new
+                        {
+                            tutor_id = tc.TutorId,
+                            course_id = c.CourseId,
+                            course_name = c.CourseTitle,
+                            grade = tc.Grade,
+                            hourly_rate = rate != null ? rate.HourlyRate : 0,
+                            admin_set_min_hourly_rate = rate != null
+                             ? rate.AdminSetMinHourlyRate
+                             : null,
+                            admin_set_max_hourly_rate = rate != null
+                             ? rate.AdminSetMaxHourlyRate
+                             : null,
+                            is_completed = tc.IsCompleted,
+                            completed_date = tc.CompletedDate
+                        }
+                    ).ToListAsync();
+
+                    result.Add(new
+                    {
+                        tutor_id = tutor.TutorId,
+                        tutor_name = tutor.User.FullName,
+                        qualification = tutor.Qualification,
+                        experience = tutor.Experience,
+                        status = tutor.Status,
+                        location = tutor.Location,
+
+                        total_courses = courses.Count,
+
+                        courses = courses
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("set-rate-by-qualification")]
+        public async Task<IActionResult> SetRateByQualification(QualificationRateDTO dto)
+        {
+            var tutorRates = await
+            (
+                from t in db.Tutors
+                join r in db.TutorCourseRates
+                    on t.TutorId equals r.TutorId
+                where t.Qualification == dto.Qualification
+                select r
+            ).ToListAsync();
+
+            if (!tutorRates.Any())
+            {
+                return NotFound(new
+                {
+                    message = "No tutors found with this qualification."
+                });
+            }
+
+            foreach (var rate in tutorRates)
+            {
+                rate.AdminSetMinHourlyRate = dto.MinHourlyRate;
+                rate.AdminSetMaxHourlyRate = dto.MaxHourlyRate;
+            }
+
+            await db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Rates updated successfully.",
+                updated = tutorRates.Count
+            });
+        }
+
+        [Authorize]
+        [HttpPost("set-rate-by-experience")]
+        public async Task<IActionResult> SetRateByExperience(ExperienceRateDTO dto)
+        {
+            var tutorRates = await
+            (
+                from t in db.Tutors
+                join r in db.TutorCourseRates
+                    on t.TutorId equals r.TutorId
+                where t.Experience >= dto.MinExperience
+                   && t.Experience <= dto.MaxExperience
+                select r
+            ).ToListAsync();
+
+            if (!tutorRates.Any())
+            {
+                return NotFound(new
+                {
+                    message = "No tutors found."
+                });
+            }
+
+            foreach (var rate in tutorRates)
+            {
+                rate.AdminSetMinHourlyRate = dto.MinHourlyRate;
+                rate.AdminSetMaxHourlyRate = dto.MaxHourlyRate;
+            }
+
+            await db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Rates updated successfully.",
+                updated = tutorRates.Count
+            });
+        }
+
+        [Authorize]
+        [HttpPost("set-rate-by-students")]
+        public async Task<IActionResult> SetRateByStudents(StudentCountRateDTO dto)
+        {
+            var tutorStudentCounts =
+                await db.Requests
+                .Where(x => x.Status == "Accepted")
+                .GroupBy(x => x.TutorId)
+                .Select(x => new
+                {
+                    TutorId = x.Key,
+                    Students = x.Select(a => a.StudentId).Distinct().Count()
+                })
+                .ToListAsync();
+
+            int updated = 0;
+
+            foreach (var tutor in tutorStudentCounts)
+            {
+                if (tutor.Students >= dto.MinStudents &&
+                    tutor.Students <= dto.MaxStudents)
+                {
+                    var rates = await db.TutorCourseRates
+                        .Where(x => x.TutorId == tutor.TutorId)
+                        .ToListAsync();
+
+                    foreach (var rate in rates)
+                    {
+                        rate.AdminSetMinHourlyRate = dto.MinHourlyRate;
+                        rate.AdminSetMaxHourlyRate = dto.MaxHourlyRate;
+                    }
+
+                    updated += rates.Count;
+                }
+            }
+
+            await db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Rates updated successfully.",
+                updated
+            });
+        }
+
+        [Authorize]
+        [HttpPost("set-rate-by-rating")]
+        public async Task<IActionResult> SetRateByRating(RatingRateDTO dto)
+        {
+            var tutorRatings =
+                await db.Feedbacks
+                .GroupBy(x => x.TutorId)
+                .Select(x => new
+                {
+                    TutorId = x.Key,
+                    Rating = x.Average(a => a.Rating)
+                })
+                .ToListAsync();
+
+            int updated = 0;
+
+            foreach (var tutor in tutorRatings)
+            {
+                if (tutor.Rating >= dto.MinRating &&
+                    tutor.Rating <= dto.MaxRating)
+                {
+                    var rates = await db.TutorCourseRates
+                        .Where(x => x.TutorId == tutor.TutorId)
+                        .ToListAsync();
+
+                    foreach (var rate in rates)
+                    {
+                        rate.AdminSetMinHourlyRate = dto.MinHourlyRate;
+                        rate.AdminSetMaxHourlyRate = dto.MaxHourlyRate;
+                    }
+
+                    updated += rates.Count;
+                }
+            }
+
+            await db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Rates updated successfully.",
+                updated
+            });
+        }
+
+        [Authorize]
+        [HttpPost("set-rate-by-tutor-course")]
+        public async Task<IActionResult> SetRateByTutorCourse(TutorCourseRateDTO dto)
+        {
+            try
+            {
+                var rate = await db.TutorCourseRates
+                    .FirstOrDefaultAsync(r => r.TutorId == dto.TutorId && r.CourseId == dto.CourseId);
+
+                if (rate == null)
+                {
+                    // create it if it doesn't exist yet
+                    rate = new TutorCourseRate
+                    {
+                        TutorId = dto.TutorId,
+                        CourseId = dto.CourseId,
+                        HourlyRate = 0
+                    };
+                    db.TutorCourseRates.Add(rate);
+                }
+
+                rate.AdminSetMinHourlyRate = dto.MinHourlyRate;
+                rate.AdminSetMaxHourlyRate = dto.MaxHourlyRate;
+
+                await db.SaveChangesAsync();
+
+                return Ok(new { message = "Rate updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+
+        [HttpGet("notification-count")]
+        public async Task<IActionResult> GetNotificationCount()
+        {
+            try
+            {
+                // Example: count pending tutor approvals
+                int count = await db.Tutors
+                    .CountAsync(t => t.Status == "Pending");
+
+                return Ok(new
+                {
+                    count = count
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error getting notification count",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+        //[Authorize(Roles = "Admin")]
+        //[HttpGet("pending-tutor-courses")]
+        //public async Task<IActionResult> GetPendingTutorCourses()
+        //{
+        //    try
+        //    {
+        //        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+        //        var rows = await db.TutorCourseEvidences
+        //            .Where(e =>
+        //                e.EvidenceType == "Transcript" &&
+        //                e.VerificationStatus == "Pending")
+        //            .OrderByDescending(e => e.UploadedDate)
+        //            .Select(e => new
+        //            {
+        //                e.EvidenceId,
+        //                e.TutorId,
+        //                e.CourseId,
+        //                Grade = e.TutorCourse.Grade,
+        //                Institute = e.TutorCourse.Institute,
+        //                LabCompleted = e.TutorCourse.LabCompleted,
+        //                GradeVerificationStatus = e.TutorCourse.GradeVerificationStatus,
+        //                e.EvidenceType,
+        //                e.FileName,
+        //                e.FilePath,
+        //                e.UploadedDate,
+        //                e.VerificationStatus
+        //            })
+        //            .ToListAsync();
+
+        //        var pendingCourses = rows.Select(e =>
+        //        {
+        //            string path = e.FilePath ?? "";
+        //            string url = path.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+        //                ? path
+        //                : $"{baseUrl}/{path.Replace("\\", "/").TrimStart('/')}";
+
+        //            return new
+        //            {
+        //                evidence_id = e.EvidenceId,
+        //                tutor_id = e.TutorId,
+        //                course_id = e.CourseId,
+
+        //                grade = e.Grade,
+        //                institute = e.Institute,
+        //                lab_completed = e.LabCompleted,
+        //                grade_verification_status = e.GradeVerificationStatus,
+
+        //                evidence_type = e.EvidenceType,
+        //                file_name = e.FileName,
+        //                file_path = e.FilePath,
+        //                transcript_url = url,
+        //                uploaded_date = e.UploadedDate,
+
+        //                verification_status = e.VerificationStatus
+        //            };
+        //        }).ToList();
+
+        //        return Ok(new
+        //        {
+        //            message = "Pending tutor courses retrieved successfully.",
+        //            total_pending = pendingCourses.Count,
+        //            courses = pendingCourses
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new
+        //        {
+        //            message = "An error occurred while loading pending tutor courses.",
+        //            error = ex.Message
+        //        });
+        //    }
+        //}
+
+        //[Authorize(Roles = "Admin")]
+        //[HttpPut("verify-tutor-course/{evidenceId}")]
+        //public async Task<IActionResult> VerifyTutorCourse( int evidenceId,[FromBody] VerifyTutorCourseDto dto)
+        //{
+        //    try
+        //    {
+        //        // 1. VALIDATE ADMIN
+        //        var adminIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        //        if (!int.TryParse(adminIdClaim, out int adminId))
+        //        {
+        //            return Unauthorized(new { message = "Invalid admin token." });
+        //        }
+
+        //        // 2. VALIDATE DTO
+        //        if (dto == null || string.IsNullOrWhiteSpace(dto.Status))
+        //        {
+        //            return BadRequest(new { message = "Verification status is required." });
+        //        }
+
+        //        string status = dto.Status.Trim();
+
+        //        if (status.Equals("Verified", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            status = "Verified";
+        //        }
+        //        else if (status.Equals("Rejected", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            status = "Rejected";
+        //        }
+        //        else
+        //        {
+        //            return BadRequest(new { message = "Status must be Verified or Rejected." });
+        //        }
+
+        //        string? remarks = dto.Remarks?.Trim();
+
+        //        if (status == "Rejected" && string.IsNullOrWhiteSpace(remarks))
+        //        {
+        //            return BadRequest(new { message = "Rejection reason is required." });
+        //        }
+
+        //        // 3. FIND TRANSCRIPT
+        //        var evidence = await db.TutorCourseEvidences
+        //            .Include(e => e.TutorCourse)
+        //            .FirstOrDefaultAsync(e =>
+        //                e.EvidenceId == evidenceId &&
+        //                e.EvidenceType == "Transcript");
+
+        //        if (evidence == null)
+        //        {
+        //            return NotFound(new { message = "Tutor course transcript not found." });
+        //        }
+
+        //        if (evidence.VerificationStatus != "Pending")
+        //        {
+        //            return BadRequest(new
+        //            {
+        //                message = "This transcript has already been reviewed.",
+        //                current_status = evidence.VerificationStatus
+        //            });
+        //        }
+
+        //        if (evidence.TutorCourse == null)
+        //        {
+        //            return NotFound(new { message = "Related tutor course not found." });
+        //        }
+
+        //        // 4. UPDATE EVIDENCE
+        //        DateTime verificationDate = DateTime.UtcNow;
+
+        //        evidence.VerificationStatus = status;
+        //        evidence.VerifiedBy = adminId;
+        //        evidence.VerifiedDate = verificationDate;
+        //        evidence.Remarks = remarks;
+
+        //        // 5. UPDATE TUTOR COURSE
+        //        var tutorCourse = evidence.TutorCourse;
+
+        //        tutorCourse.GradeVerificationStatus = status;
+        //        tutorCourse.VerifiedBy = adminId;
+        //        tutorCourse.VerifiedDate = verificationDate;
+        //        tutorCourse.VerificationRemarks = remarks;
+
+        //        // 6. SAVE
+        //        await db.SaveChangesAsync();
+
+        //        return Ok(new
+        //        {
+        //            message = status == "Verified"
+        //                ? "Tutor course approved successfully."
+        //                : "Tutor course rejected successfully.",
+
+        //            evidence_id = evidence.EvidenceId,
+        //            tutor_id = evidence.TutorId,
+        //            course_id = evidence.CourseId,
+
+        //            verification_status = evidence.VerificationStatus,
+        //            grade_verification_status = tutorCourse.GradeVerificationStatus,
+
+        //            verified_by = adminId,
+        //            verified_date = verificationDate,
+        //            remarks = evidence.Remarks
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new
+        //        {
+        //            message = "An error occurred while verifying tutor course.",
+        //            error = ex.Message
+        //        });
+        //    }
+        //}
+
+        //[Authorize(Roles = "Admin")]
+        //[HttpGet("pending-tutor-courses")]
+        //public async Task<IActionResult> GetPendingTutorCourses()
+        //{
+        //    try
+        //    {
+        //        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+        //        var rows = await db.TutorCourseEvidences
+        //            .Where(e =>
+        //                e.EvidenceType == "Transcript" &&
+        //                e.VerificationStatus == "Pending")
+        //            .OrderByDescending(e => e.UploadedDate)
+        //            .Select(e => new
+        //            {
+        //                e.EvidenceId,
+        //                e.TutorId,
+        //                e.CourseId,
+        //                Grade = e.TutorCourse.Grade,
+        //                Institute = e.TutorCourse.Institute,
+        //                LabCompleted = e.TutorCourse.LabCompleted,
+        //                GradeVerificationStatus = e.TutorCourse.GradeVerificationStatus,
+        //                e.EvidenceType,
+        //                e.FileName,
+        //                e.FilePath,
+        //                e.UploadedDate,
+        //                e.VerificationStatus
+        //            })
+        //            .ToListAsync();
+
+        //        var pendingCourses = rows.Select(e =>
+        //        {
+        //            string path = e.FilePath ?? "";
+        //            string url = path.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+        //                ? path
+        //                : $"{baseUrl}/{path.Replace("\\", "/").TrimStart('/')}";
+
+        //            return new
+        //            {
+        //                evidence_id = e.EvidenceId,
+        //                tutor_id = e.TutorId,
+        //                course_id = e.CourseId,
+
+        //                grade = e.Grade,
+        //                institute = e.Institute,
+        //                lab_completed = e.LabCompleted,
+        //                grade_verification_status = e.GradeVerificationStatus,
+
+        //                evidence_type = e.EvidenceType,
+        //                file_name = e.FileName,
+        //                file_path = e.FilePath,
+        //                transcript_url = url,
+        //                uploaded_date = e.UploadedDate,
+
+        //                verification_status = e.VerificationStatus
+        //            };
+        //        }).ToList();
+
+        //        return Ok(new
+        //        {
+        //            message = "Pending tutor courses retrieved successfully.",
+        //            total_pending = pendingCourses.Count,
+        //            courses = pendingCourses
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new
+        //        {
+        //            message = "An error occurred while loading pending tutor courses.",
+        //            error = ex.Message
+        //        });
+        //    }
+        //}
+
+        //[Authorize(Roles = "Admin")]
+        //[HttpPut("verify-tutor-course/{evidenceId}")]
+        //public async Task<IActionResult> VerifyTutorCourse(int evidenceId, [FromBody] VerifyTutorCourseDto dto)
+        //{
+        //    try
+        //    {
+        //        // =========================================
+        //        // 1. VALIDATE ADMIN
+        //        // =========================================
+
+        //        var adminIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        //        if (!int.TryParse(adminIdClaim, out int adminId))
+        //        {
+        //            return Unauthorized(new { message = "Invalid admin token." });
+        //        }
+
+        //        // =========================================
+        //        // 2. VALIDATE DTO
+        //        // =========================================
+
+        //        if (dto == null || string.IsNullOrWhiteSpace(dto.Status))
+        //        {
+        //            return BadRequest(new { message = "Verification status is required." });
+        //        }
+
+        //        string status = dto.Status.Trim();
+
+        //        if (status.Equals("Verified", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            status = "Verified";
+        //        }
+        //        else if (status.Equals("Rejected", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            status = "Rejected";
+        //        }
+        //        else
+        //        {
+        //            return BadRequest(new { message = "Status must be Verified or Rejected." });
+        //        }
+
+        //        string? remarks = dto.Remarks?.Trim();
+
+        //        if (status == "Rejected" && string.IsNullOrWhiteSpace(remarks))
+        //        {
+        //            return BadRequest(new { message = "Rejection reason is required." });
+        //        }
+
+        //        // =========================================
+        //        // 3. FIND PENDING TRANSCRIPT
+        //        // =========================================
+
+        //        var evidence = await db.TutorCourseEvidences
+        //            .Include(e => e.TutorCourse)
+        //            .FirstOrDefaultAsync(e =>
+        //                e.EvidenceId == evidenceId &&
+        //                e.EvidenceType == "Transcript");
+
+        //        if (evidence == null)
+        //        {
+        //            return NotFound(new { message = "Tutor course transcript not found." });
+        //        }
+
+        //        if (evidence.VerificationStatus != "Pending")
+        //        {
+        //            return BadRequest(new
+        //            {
+        //                message = "This transcript has already been reviewed.",
+        //                current_status = evidence.VerificationStatus
+        //            });
+        //        }
+
+        //        if (evidence.TutorCourse == null)
+        //        {
+        //            return NotFound(new { message = "Related tutor course not found." });
+        //        }
+
+        //        // =========================================
+        //        // 4. UPDATE EVIDENCE STATUS
+        //        // =========================================
+
+        //        DateTime verificationDate = DateTime.UtcNow;
+
+        //        evidence.VerificationStatus = status;
+        //        evidence.VerifiedBy = adminId;
+        //        evidence.VerifiedDate = verificationDate;
+        //        evidence.Remarks = remarks;
+
+        //        // =========================================
+        //        // 5. UPDATE TUTOR COURSE STATUS
+        //        // =========================================
+
+        //        var tutorCourse = evidence.TutorCourse;
+
+        //        tutorCourse.GradeVerificationStatus = status;
+        //        tutorCourse.VerifiedBy = adminId;
+        //        tutorCourse.VerifiedDate = verificationDate;
+        //        tutorCourse.VerificationRemarks = remarks;
+
+        //        // =========================================
+        //        // 5B. UPDATE Tutor_Transcript (NEW)
+        //        // Change names below to match your model:
+        //        // db.TutorTranscripts, TutorId, FilePath, Status
+        //        // =========================================
+
+        //        var transcript = await db.TutorCourseEvidence
+        //            .FirstOrDefaultAsync(t =>
+        //                t.TutorId == evidence.TutorId &&
+        //                t.FilePath == evidence.FilePath);
+
+        //        if (transcript != null)
+        //        {
+        //            transcript.Status = status;   // "Verified" or "Rejected"
+        //        }
+
+        //        // =========================================
+        //        // 6. SAVE CHANGES
+        //        // =========================================
+
+        //        await db.SaveChangesAsync();
+
+        //        return Ok(new
+        //        {
+        //            message = status == "Verified"
+        //                ? "Tutor course approved successfully."
+        //                : "Tutor course rejected successfully.",
+
+        //            evidence_id = evidence.EvidenceId,
+        //            tutor_id = evidence.TutorId,
+        //            course_id = evidence.CourseId,
+
+        //            verification_status = evidence.VerificationStatus,
+        //            grade_verification_status = tutorCourse.GradeVerificationStatus,
+
+        //            verified_by = adminId,
+        //            verified_date = verificationDate,
+        //            remarks = evidence.Remarks
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new
+        //        {
+        //            message = "An error occurred while verifying tutor course.",
+        //            error = ex.Message
+        //        });
+        //    }
+        //}
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("pending-tutor-courses")]
+        public async Task<IActionResult> GetPendingTutorCourses()
+        {
+            try
+            {
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+                var rows = await db.TutorCourseEvidences
+                    .Where(e =>
+                        e.EvidenceType == "Transcript" &&
+                        e.VerificationStatus == "Pending")
+                    .OrderByDescending(e => e.UploadedDate)
+                    .Select(e => new
+                    {
+                        e.EvidenceId,
+                        e.TutorId,
+                        e.CourseId,
+                        Grade = e.TutorCourse.Grade,
+                        Institute = e.TutorCourse.Institute,
+                        LabCompleted = e.TutorCourse.LabCompleted,
+                        GradeVerificationStatus = e.TutorCourse.GradeVerificationStatus,
+                        e.EvidenceType,
+                        e.FileName,
+                        e.FilePath,
+                        e.UploadedDate,
+                        e.VerificationStatus
+                    })
+                    .ToListAsync();
+
+                var pendingCourses = rows.Select(e =>
+                {
+                    string path = e.FilePath ?? "";
+                    string url = path.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                        ? path
+                        : $"{baseUrl}/{path.Replace("\\", "/").TrimStart('/')}";
+
+                    return new
+                    {
+                        evidence_id = e.EvidenceId,
+                        tutor_id = e.TutorId,
+                        course_id = e.CourseId,
+
+                        grade = e.Grade,
+                        institute = e.Institute,
+                        lab_completed = e.LabCompleted,
+                        grade_verification_status = e.GradeVerificationStatus,
+
+                        evidence_type = e.EvidenceType,
+                        file_name = e.FileName,
+                        file_path = e.FilePath,
+                        transcript_url = url,
+                        uploaded_date = e.UploadedDate,
+
+                        verification_status = e.VerificationStatus
+                    };
+                }).ToList();
+
+                return Ok(new
+                {
+                    message = "Pending tutor courses retrieved successfully.",
+                    total_pending = pendingCourses.Count,
+                    courses = pendingCourses
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "An error occurred while loading pending tutor courses.",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("verify-tutor-course/{evidenceId}")]
+        public async Task<IActionResult> VerifyTutorCourse(
+            int evidenceId,
+            [FromBody] VerifyTutorCourseDto dto)
+        {
+            try
+            {
+                // =========================================
+                // 1. VALIDATE ADMIN
+                // =========================================
+
+                var adminIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (!int.TryParse(adminIdClaim, out int adminId))
+                {
+                    return Unauthorized(new { message = "Invalid admin token." });
+                }
+
+                // =========================================
+                // 2. VALIDATE DTO
+                // =========================================
+
+                if (dto == null || string.IsNullOrWhiteSpace(dto.Status))
+                {
+                    return BadRequest(new { message = "Verification status is required." });
+                }
+
+                string status = dto.Status.Trim();
+
+                if (status.Equals("Verified", StringComparison.OrdinalIgnoreCase))
+                {
+                    status = "Verified";
+                }
+                else if (status.Equals("Rejected", StringComparison.OrdinalIgnoreCase))
+                {
+                    status = "Rejected";
+                }
+                else
+                {
+                    return BadRequest(new { message = "Status must be Verified or Rejected." });
+                }
+
+                string? remarks = dto.Remarks?.Trim();
+
+                if (status == "Rejected" && string.IsNullOrWhiteSpace(remarks))
+                {
+                    return BadRequest(new { message = "Rejection reason is required." });
+                }
+
+                // =========================================
+                // 3. FIND PENDING TRANSCRIPT
+                // =========================================
+
+                var evidence = await db.TutorCourseEvidences
+                    .Include(e => e.TutorCourse)
+                    .FirstOrDefaultAsync(e =>
+                        e.EvidenceId == evidenceId &&
+                        e.EvidenceType == "Transcript");
+
+                if (evidence == null)
+                {
+                    return NotFound(new { message = "Tutor course transcript not found." });
+                }
+
+                if (evidence.VerificationStatus != "Pending")
+                {
+                    return BadRequest(new
+                    {
+                        message = "This transcript has already been reviewed.",
+                        current_status = evidence.VerificationStatus
+                    });
+                }
+
+                if (evidence.TutorCourse == null)
+                {
+                    return NotFound(new { message = "Related tutor course not found." });
+                }
+
+                // =========================================
+                // 4. UPDATE EVIDENCE STATUS
+                // =========================================
+
+                DateTime verificationDate = DateTime.UtcNow;
+
+                evidence.VerificationStatus = status;
+                evidence.VerifiedBy = adminId;
+                evidence.VerifiedDate = verificationDate;
+                evidence.Remarks = remarks;
+
+                // =========================================
+                // 5. UPDATE TUTOR COURSE STATUS
+                // =========================================
+
+                var tutorCourse = evidence.TutorCourse;
+
+                tutorCourse.GradeVerificationStatus = status;
+                tutorCourse.VerifiedBy = adminId;
+                tutorCourse.VerifiedDate = verificationDate;
+                tutorCourse.VerificationRemarks = remarks;
+
+                // =========================================
+                // 6. SAVE CHANGES
+                // =========================================
+
+                await db.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = status == "Verified"
+                        ? "Tutor course approved successfully."
+                        : "Tutor course rejected successfully.",
+
+                    evidence_id = evidence.EvidenceId,
+                    tutor_id = evidence.TutorId,
+                    course_id = evidence.CourseId,
+
+                    verification_status = evidence.VerificationStatus,
+                    grade_verification_status = tutorCourse.GradeVerificationStatus,
+
+                    verified_by = adminId,
+                    verified_date = verificationDate,
+                    remarks = evidence.Remarks
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "An error occurred while verifying tutor course.",
+                    error = ex.Message
+                });
+            }
+        }
+        [Authorize]
+        [HttpPost("add-lt-room")]
+        public async Task<IActionResult> AddLTRoom([FromBody] AddLTRoomRequest model)
+        {
+            try
+            {
+                // ============================================================
+                // STEP 1: VERIFY ADMIN
+                // ============================================================
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userIdClaim))
+                {
+                    return Unauthorized(new
+                    {
+                        message = "User ID not found."
+                    });
+                }
+
+                if (!int.TryParse(userIdClaim, out int userId))
+                {
+                    return Unauthorized(new
+                    {
+                        message = "Invalid User ID."
+                    });
+                }
+
+                var admin = await db.Users
+                    .FirstOrDefaultAsync(u =>
+                        u.UserId == userId &&
+                        u.Role == "Admin");
+
+                if (admin == null)
+                {
+                    return Unauthorized(new
+                    {
+                        message = "Only Admin can add LT Room."
+                    });
+                }
+
+
+                // ============================================================
+                // STEP 2: VALIDATE ROOM DATA
+                // ============================================================
+
+                if (model == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Room data is required."
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(model.RoomName))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Room name is required."
+                    });
+                }
+
+                if (model.Capacity <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Capacity must be greater than 0."
+                    });
+                }
+
+
+                // ============================================================
+                // STEP 3: CHECK DUPLICATE ROOM NAME
+                // ============================================================
+
+                var existingRoom = await db.LtRooms
+                    .FirstOrDefaultAsync(r =>
+                        r.RoomName.ToLower() ==
+                        model.RoomName.Trim().ToLower());
+
+                if (existingRoom != null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "An LT Room with this name already exists."
+                    });
+                }
+
+
+                // ============================================================
+                // STEP 4: VALIDATE SCHEDULES
+                // ============================================================
+
+                if (model.Schedules == null ||
+                    model.Schedules.Count == 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "At least one schedule is required."
+                    });
+                }
+
+                string[] validDays =
+                {
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday"
+                };
+
+                foreach (var schedule in model.Schedules)
+                {
+                    if (string.IsNullOrWhiteSpace(schedule.Day))
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Schedule day is required."
+                        });
+                    }
+
+                    if (!validDays.Contains(
+                        schedule.Day.Trim(),
+                        StringComparer.OrdinalIgnoreCase))
+                    {
+                        return BadRequest(new
+                        {
+                            message =
+                                $"Invalid day: {schedule.Day}. " +
+                                "Use Monday, Tuesday, Wednesday, Thursday, Friday, Saturday or Sunday."
+                        });
+                    }
+
+                    if (string.IsNullOrWhiteSpace(schedule.Time))
+                    {
+                        return BadRequest(new
+                        {
+                            message = $"Time is required for {schedule.Day}."
+                        });
+                    }
+
+                    if (schedule.StartDate.HasValue &&
+                        schedule.EndDate.HasValue &&
+                        schedule.StartDate.Value >
+                        schedule.EndDate.Value)
+                    {
+                        return BadRequest(new
+                        {
+                            message =
+                                $"Start date cannot be greater than end date for {schedule.Day}."
+                        });
+                    }
+                }
+
+
+                // ============================================================
+                // STEP 5: CREATE LT ROOM
+                // ============================================================
+
+                var room = new LtRoom
+                {
+                    RoomName = model.RoomName.Trim(),
+                    Capacity = model.Capacity,
+                    Status = "Active",
+                    CreatedDate = DateTime.Now
+                };
+
+                db.LtRooms.Add(room);
+
+                await db.SaveChangesAsync();
+
+
+                // ============================================================
+                // STEP 6: CREATE LT ROOM SCHEDULES
+                // ============================================================
+
+                var schedules = new List<LtRoomSchedule>();
+
+                foreach (var schedule in model.Schedules)
+                {
+                    var roomSchedule = new LtRoomSchedule
+                    {
+                        LtRoomId = room.LtRoomId,
+
+                        Day = schedule.Day.Trim(),
+
+                        Time = schedule.Time.Trim(),
+
+                        StartDate = schedule.StartDate.HasValue
+                            ? schedule.StartDate.Value
+                            : null,
+
+                        EndDate = schedule.EndDate.HasValue
+                            ? schedule.EndDate.Value
+                            : null,
+
+                        Status = "Available",
+
+                        CreatedDate = DateTime.Now
+                    };
+
+                    schedules.Add(roomSchedule);
+                }
+
+                db.LtRoomSchedules.AddRange(schedules);
+
+                await db.SaveChangesAsync();
+
+
+                // ============================================================
+                // STEP 7: RETURN CREATED ROOM + SCHEDULE
+                // ============================================================
+
+                return Ok(new
+                {
+                    message = "LT Room and schedule added successfully.",
+
+                    room = new
+                    {
+                        room.LtRoomId,
+                        room.RoomName,
+                        room.Capacity,
+                        room.Status,
+                        room.CreatedDate
+                    },
+
+                    schedules = schedules.Select(s => new
+                    {
+                        s.LtScheduleId,
+                        s.LtRoomId,
+                        s.Day,
+                        s.Time,
+                        s.StartDate,
+                        s.EndDate,
+                        s.Status,
+                        s.CreatedDate
+                    }).ToList()
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "An error occurred while adding LT Room.",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("get-lt-rooms")]
+        public async Task<IActionResult> GetLTRooms()
+        {
+            try
+            {
+                // ============================================================
+                // STEP 1: VERIFY ADMIN
+                // ============================================================
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userIdClaim))
+                {
+                    return Unauthorized(new
+                    {
+                        message = "User ID not found."
+                    });
+                }
+
+                if (!int.TryParse(userIdClaim, out int userId))
+                {
+                    return Unauthorized(new
+                    {
+                        message = "Invalid User ID."
+                    });
+                }
+
+                var admin = await db.Users
+                    .FirstOrDefaultAsync(u =>
+                        u.UserId == userId &&
+                        u.Role == "Admin");
+
+                if (admin == null)
+                {
+                    return Unauthorized(new
+                    {
+                        message = "Only Admin can view LT Rooms."
+                    });
+                }
+
+
+                // ============================================================
+                // STEP 2: GET ALL LT ROOMS
+                // ============================================================
+
+                var rooms = await db.LtRooms
+                    .OrderBy(r => r.RoomName)
+                    .Select(r => new
+                    {
+                        r.LtRoomId,
+                        r.RoomName,
+                        r.Capacity,
+                        r.Status,
+                        r.CreatedDate,
+
+                        // ====================================================
+                        // GET ROOM SCHEDULES
+                        // ====================================================
+
+                        schedules = db.LtRoomSchedules
+                            .Where(s => s.LtRoomId == r.LtRoomId)
+                            .OrderBy(s => s.Day)
+                            .ThenBy(s => s.Time)
+                            .Select(s => new
+                            {
+                                s.LtScheduleId,
+                                s.LtRoomId,
+                                s.Day,
+                                s.Time,
+                                s.StartDate,
+                                s.EndDate,
+                                s.Status,
+                                s.CreatedDate
+                            })
+                            .ToList()
+                    })
+                    .ToListAsync();
+
+
+                // ============================================================
+                // STEP 3: RETURN RESPONSE
+                // ============================================================
+
+                return Ok(new
+                {
+                    message = "LT Rooms retrieved successfully.",
+
+                    totalRooms = rooms.Count,
+
+                    rooms = rooms
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "An error occurred while retrieving LT Rooms.",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("update-lt-room/{roomId}")]
+        public async Task<IActionResult> UpdateLTRoom(int roomId, [FromBody] UpdateLTRoomRequest model)
+        {
+            using var transaction = await db.Database.BeginTransactionAsync();
+
+            try
+            {
+                // ============================================================
+                // STEP 1: VERIFY ADMIN
+                // ============================================================
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userIdClaim) ||
+                    !int.TryParse(userIdClaim, out int userId))
+                {
+                    return Unauthorized(new
+                    {
+                        message = "Invalid User ID."
+                    });
+                }
+
+                var admin = await db.Users
+                    .FirstOrDefaultAsync(u =>
+                        u.UserId == userId &&
+                        u.Role == "Admin");
+
+                if (admin == null)
+                {
+                    return Unauthorized(new
+                    {
+                        message = "Only Admin can update LT Room."
+                    });
+                }
+
+                // ============================================================
+                // STEP 2: VALIDATE REQUEST
+                // ============================================================
+
+                if (model == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Room data is required."
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(model.RoomName))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Room name is required."
+                    });
+                }
+
+                if (model.Capacity <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Capacity must be greater than 0."
+                    });
+                }
+
+                if (model.Schedules == null || model.Schedules.Count == 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "At least one schedule is required."
+                    });
+                }
+
+                // ============================================================
+                // STEP 3: FIND ROOM
+                // ============================================================
+
+                var room = await db.LtRooms
+                    .FirstOrDefaultAsync(r => r.LtRoomId == roomId);
+
+                if (room == null)
+                {
+                    return NotFound(new
+                    {
+                        message = "LT Room not found."
+                    });
+                }
+
+                // ============================================================
+                // STEP 4: CHECK DUPLICATE ROOM NAME
+                // ============================================================
+
+                var duplicateRoom = await db.LtRooms
+                    .AnyAsync(r =>
+                        r.LtRoomId != roomId &&
+                        r.RoomName.ToLower() == model.RoomName.Trim().ToLower());
+
+                if (duplicateRoom)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Another LT Room with this name already exists."
+                    });
+                }
+
+                // ============================================================
+                // STEP 5: VALIDATE SCHEDULES
+                // ============================================================
+
+                string[] validDays =
+                {
+            "Monday", "Tuesday", "Wednesday",
+            "Thursday", "Friday", "Saturday", "Sunday"
+        };
+
+                var existingSchedules = await db.LtRoomSchedules
+                    .Where(s => s.LtRoomId == roomId)
+                    .ToListAsync();
+
+                var submittedIds = model.Schedules
+                    .Where(s => s.LtScheduleId > 0)
+                    .Select(s => s.LtScheduleId)
+                    .ToList();
+
+                // Prevent duplicate schedule IDs
+                if (submittedIds.Count != submittedIds.Distinct().Count())
+                {
+                    return BadRequest(new
+                    {
+                        message = "Duplicate schedule IDs are not allowed."
+                    });
+                }
+
+                // Every submitted existing ID must belong to this room
+                if (submittedIds.Any(id =>
+                    !existingSchedules.Any(s => s.LtScheduleId == id)))
+                {
+                    return BadRequest(new
+                    {
+                        message = "One or more schedule IDs do not belong to this LT Room."
+                    });
+                }
+
+                foreach (var schedule in model.Schedules)
+                {
+                    if (string.IsNullOrWhiteSpace(schedule.Day))
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Schedule day is required."
+                        });
+                    }
+
+                    if (!validDays.Contains(
+                        schedule.Day.Trim(),
+                        StringComparer.OrdinalIgnoreCase))
+                    {
+                        return BadRequest(new
+                        {
+                            message = $"Invalid day: {schedule.Day}."
+                        });
+                    }
+
+                    if (string.IsNullOrWhiteSpace(schedule.Time))
+                    {
+                        return BadRequest(new
+                        {
+                            message = $"Time is required for {schedule.Day}."
+                        });
+                    }
+
+                    if (schedule.StartDate.HasValue &&
+                        schedule.EndDate.HasValue &&
+                        schedule.StartDate.Value > schedule.EndDate.Value)
+                    {
+                        return BadRequest(new
+                        {
+                            message = $"Start date cannot be greater than end date for {schedule.Day}."
+                        });
+                    }
+                }
+
+                // ============================================================
+                // STEP 6: UPDATE ROOM
+                // ============================================================
+
+                room.RoomName = model.RoomName.Trim();
+                room.Capacity = model.Capacity;
+
+                // ============================================================
+                // STEP 7: UPDATE EXISTING SCHEDULES
+                // ============================================================
+
+                foreach (var schedule in model.Schedules)
+                {
+                    if (schedule.LtScheduleId > 0)
+                    {
+                        var existingSchedule = existingSchedules
+                            .First(s => s.LtScheduleId == schedule.LtScheduleId);
+
+                        existingSchedule.Day = schedule.Day.Trim();
+                        existingSchedule.Time = schedule.Time.Trim();
+
+                        existingSchedule.StartDate = schedule.StartDate;
+                        existingSchedule.EndDate = schedule.EndDate;
+                    }
+                }
+
+                // ============================================================
+                // STEP 8: ADD NEW SCHEDULES
+                // ============================================================
+
+                var newSchedules = model.Schedules
+                    .Where(s => s.LtScheduleId == 0)
+                    .Select(s => new LtRoomSchedule
+                    {
+                        LtRoomId = room.LtRoomId,
+
+                        Day = s.Day.Trim(),
+                        Time = s.Time.Trim(),
+
+                        StartDate = s.StartDate,
+                        EndDate = s.EndDate,
+
+                        Status = "Available",
+                        CreatedDate = DateTime.Now
+                    })
+                    .ToList();
+
+                if (newSchedules.Count > 0)
+                {
+                    db.LtRoomSchedules.AddRange(newSchedules);
+                }
+
+                // ============================================================
+                // STEP 9: DELETE REMOVED SCHEDULES
+                // ============================================================
+
+                var removedSchedules = existingSchedules
+                    .Where(s => !submittedIds.Contains(s.LtScheduleId))
+                    .ToList();
+
+                if (removedSchedules.Count > 0)
+                {
+                    db.LtRoomSchedules.RemoveRange(removedSchedules);
+                }
+
+                // ============================================================
+                // STEP 10: SAVE CHANGES
+                // ============================================================
+
+                await db.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                // ============================================================
+                // STEP 11: RETURN UPDATED ROOM
+                // ============================================================
+
+                var updatedSchedules = await db.LtRoomSchedules
+                    .Where(s => s.LtRoomId == roomId)
+                    .OrderBy(s => s.Day)
+                    .ThenBy(s => s.Time)
+                    .Select(s => new
+                    {
+                        s.LtScheduleId,
+                        s.LtRoomId,
+                        s.Day,
+                        s.Time,
+                        s.StartDate,
+                        s.EndDate,
+                        s.Status,
+                        s.CreatedDate
+                    })
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    message = "LT Room updated successfully.",
+
+                    room = new
+                    {
+                        room.LtRoomId,
+                        room.RoomName,
+                        room.Capacity,
+                        room.Status,
+                        room.CreatedDate
+                    },
+
+                    schedules = updatedSchedules
+                });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+
+                return StatusCode(500, new
+                {
+                    message = "An error occurred while updating LT Room.",
+                    error = ex.Message
+                });
+            }
+        }
+    
+    [Authorize]
+        [HttpDelete("delete-lt-room/{roomId}")]
+        public async Task<IActionResult> DeleteLTRoom(int roomId)
+        {
+            using var transaction = await db.Database.BeginTransactionAsync();
+
+            try
+            {
+                // ============================================================
+                // STEP 1: VERIFY ADMIN
+                // ============================================================
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userIdClaim) ||
+                    !int.TryParse(userIdClaim, out int userId))
+                {
+                    return Unauthorized(new
+                    {
+                        message = "Invalid User ID."
+                    });
+                }
+
+                var admin = await db.Users
+                    .FirstOrDefaultAsync(u =>
+                        u.UserId == userId &&
+                        u.Role == "Admin");
+
+                if (admin == null)
+                {
+                    return Unauthorized(new
+                    {
+                        message = "Only Admin can delete LT Room."
+                    });
+                }
+
+                // ============================================================
+                // STEP 2: FIND LT ROOM
+                // ============================================================
+
+                var room = await db.LtRooms
+                    .FirstOrDefaultAsync(r => r.LtRoomId == roomId);
+
+                if (room == null)
+                {
+                    return NotFound(new
+                    {
+                        message = "LT Room not found."
+                    });
+                }
+
+                // ============================================================
+                // STEP 3: GET ASSOCIATED SCHEDULES
+                // ============================================================
+
+                var schedules = await db.LtRoomSchedules
+                    .Where(s => s.LtRoomId == roomId)
+                    .ToListAsync();
+
+                // ============================================================
+                // STEP 4: DELETE ASSOCIATED SCHEDULES
+                // ============================================================
+
+                if (schedules.Count > 0)
+                {
+                    db.LtRoomSchedules.RemoveRange(schedules);
+                }
+
+                // ============================================================
+                // STEP 5: DELETE LT ROOM
+                // ============================================================
+
+                db.LtRooms.Remove(room);
+
+                // ============================================================
+                // STEP 6: SAVE CHANGES
+                // ============================================================
+
+                await db.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                // ============================================================
+                // STEP 7: RETURN RESPONSE
+                // ============================================================
+
+                return Ok(new
+                {
+                    message = "LT Room and its schedules deleted successfully.",
+
+                    deletedRoom = new
+                    {
+                        room.LtRoomId,
+                        room.RoomName,
+                        room.Capacity,
+                        deletedSchedules = schedules.Count
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+
+                return StatusCode(500, new
+                {
+                    message = "An error occurred while deleting LT Room.",
+                    error = ex.Message
+                });
+            }
+        } } }
+
+
+    public class AddSubjectDTO
+    {
+        public string CourseTitle { get; set; }
+
+        public string Institute { get; set; }
+
+        public string CourseCode { get; set; }
+
+        public string Program { get; set; }
+
+        public string Description { get; set; }
+
+        public decimal? MinRate { get; set; }
+
+        public decimal? MaxRate { get; set; }
+
+        // NEW: Admin course duration
+        public int StandardDurationWeeks { get; set; }
+
+        // NEW: Admin weekly classes
+        public int StandardClassesPerWeek { get; set; }
+    }
+
+    public class UpdateStudentStatusDTO
+    {
+        public string Status { get; set; }
+    }
+
+    //Set Rate According to Qualification
+    public class QualificationRateDTO
+    {
+        public string Qualification { get; set; }
+
+        public decimal MinHourlyRate { get; set; }
+
+        public decimal MaxHourlyRate { get; set; }
+    }
+
+    //Set Rate According to Teaching Experience
+    public class ExperienceRateDTO
+    {
+        public int MinExperience { get; set; }
+
+        public int MaxExperience { get; set; }
+
+        public decimal MinHourlyRate { get; set; }
+
+        public decimal MaxHourlyRate { get; set; }
+    }
+
+    //Set Rate According to Number of Students Taught
+    public class StudentCountRateDTO
+    {
+        public int MinStudents { get; set; }
+
+        public int MaxStudents { get; set; }
+
+        public decimal MinHourlyRate { get; set; }
+
+        public decimal MaxHourlyRate { get; set; }
+    }
+
+    //Set Rate According to Average Rating
+    public class RatingRateDTO
+    {
+        public double MinRating { get; set; }
+
+        public double MaxRating { get; set; }
+
+        public decimal MinHourlyRate { get; set; }
+
+        public decimal MaxHourlyRate { get; set; }
+    }
+
+    public class TutorCourseRateDTO
+    {
+        public int TutorId { get; set; }
+        public int CourseId { get; set; }
+        public decimal MinHourlyRate { get; set; }
+        public decimal MaxHourlyRate { get; set; }
+    }
+
+    public class AddLTRoomRequest
+    {
+        public string RoomName { get; set; }
+        public int Capacity { get; set; }
+        public List<LT_RoomScheduleRequest> Schedules { get; set; }
+    }
+
+    public class LT_RoomScheduleRequest
+    {
+        public string Day { get; set; }
+        public string Time { get; set; }
+        public DateOnly? StartDate { get; set; }
+        public DateOnly? EndDate { get; set; }
+    }
+
+    public class UpdateSubjectDTO
+    {
+        public string CourseTitle { get; set; }
+
+        public decimal? MinRate { get; set; }
+
+        public decimal? MaxRate { get; set; }
+
+        public int StandardDurationWeeks { get; set; }
+
+        public int StandardClassesPerWeek { get; set; }
+
+        // Optional: update a specific university course code
+        public int? CourseCodeId { get; set; }
+
+        public string Institute { get; set; }
+
+        public string CourseCode { get; set; }
+
+        public string Program { get; set; }
+
+        public string Description { get; set; }
+    }
+
+    public class UpdateLTRoomRequest
+    {
+        public string? RoomName { get; set; }
+        public int Capacity { get; set; }
+        public List<UpdateLTRoomScheduleRequest> Schedules { get; set; }
+    }
+
+    public class UpdateLTRoomScheduleRequest
+    {
+        // Existing schedule: pass its ID
+        // New schedule: pass 0
+        public int LtScheduleId { get; set; }
+
+        public string? Day { get; set; }
+        public string? Time { get; set; }
+
+        public DateOnly? StartDate { get; set; }
+        public DateOnly? EndDate { get; set; }
+    }
+public class VerifyTutorCourseDto
+{
+    public string Status { get; set; } = null!;
+    public string? Remarks { get; set; }
+}
+

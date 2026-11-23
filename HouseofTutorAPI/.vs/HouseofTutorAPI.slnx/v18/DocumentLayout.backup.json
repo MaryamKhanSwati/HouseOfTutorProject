@@ -1,0 +1,114 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\FYP IMP\\HouseofTutorAPI\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{0023CA7F-D842-0B13-51B6-2EDA88E665D3}|HouseofTutorAPI\\HouseofTutorAPI.csproj|d:\\fyp imp\\houseoftutorapi\\houseoftutorapi\\models\\tutor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0023CA7F-D842-0B13-51B6-2EDA88E665D3}|HouseofTutorAPI\\HouseofTutorAPI.csproj|solutionrelative:houseoftutorapi\\models\\tutor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0023CA7F-D842-0B13-51B6-2EDA88E665D3}|HouseofTutorAPI\\HouseofTutorAPI.csproj|d:\\fyp imp\\houseoftutorapi\\houseoftutorapi\\controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0023CA7F-D842-0B13-51B6-2EDA88E665D3}|HouseofTutorAPI\\HouseofTutorAPI.csproj|solutionrelative:houseoftutorapi\\controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0023CA7F-D842-0B13-51B6-2EDA88E665D3}|HouseofTutorAPI\\HouseofTutorAPI.csproj|d:\\fyp imp\\houseoftutorapi\\houseoftutorapi\\models\\houseoftutordbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0023CA7F-D842-0B13-51B6-2EDA88E665D3}|HouseofTutorAPI\\HouseofTutorAPI.csproj|solutionrelative:houseoftutorapi\\models\\houseoftutordbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0023CA7F-D842-0B13-51B6-2EDA88E665D3}|HouseofTutorAPI\\HouseofTutorAPI.csproj|d:\\fyp imp\\houseoftutorapi\\houseoftutorapi\\controllers\\tutorcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0023CA7F-D842-0B13-51B6-2EDA88E665D3}|HouseofTutorAPI\\HouseofTutorAPI.csproj|solutionrelative:houseoftutorapi\\controllers\\tutorcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0023CA7F-D842-0B13-51B6-2EDA88E665D3}|HouseofTutorAPI\\HouseofTutorAPI.csproj|d:\\fyp imp\\houseoftutorapi\\houseoftutorapi\\controllers\\studentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0023CA7F-D842-0B13-51B6-2EDA88E665D3}|HouseofTutorAPI\\HouseofTutorAPI.csproj|solutionrelative:houseoftutorapi\\controllers\\studentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "TutorController.cs",
+              "DocumentMoniker": "D:\\FYP IMP\\HouseofTutorAPI\\HouseofTutorAPI\\Controllers\\TutorController.cs",
+              "RelativeDocumentMoniker": "HouseofTutorAPI\\Controllers\\TutorController.cs",
+              "ToolTip": "D:\\FYP IMP\\HouseofTutorAPI\\HouseofTutorAPI\\Controllers\\TutorController.cs",
+              "RelativeToolTip": "HouseofTutorAPI\\Controllers\\TutorController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-04T05:07:06.763Z",
+              "IsPinned": true,
+              "EditorCaption": "",
+              "OwnerCaption": "%2"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Tutor.cs",
+              "DocumentMoniker": "D:\\FYP IMP\\HouseofTutorAPI\\HouseofTutorAPI\\Models\\Tutor.cs",
+              "RelativeDocumentMoniker": "HouseofTutorAPI\\Models\\Tutor.cs",
+              "ToolTip": "D:\\FYP IMP\\HouseofTutorAPI\\HouseofTutorAPI\\Models\\Tutor.cs",
+              "RelativeToolTip": "HouseofTutorAPI\\Models\\Tutor.cs",
+              "ViewState": "AgIAACEAAAAAAAAAAAAswC8AAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-15T08:31:28.312Z",
+              "EditorCaption": "",
+              "OwnerCaption": "%2"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "HouseofTutorDbContext.cs",
+              "DocumentMoniker": "D:\\FYP IMP\\HouseofTutorAPI\\HouseofTutorAPI\\Models\\HouseofTutorDbContext.cs",
+              "RelativeDocumentMoniker": "HouseofTutorAPI\\Models\\HouseofTutorDbContext.cs",
+              "ToolTip": "D:\\FYP IMP\\HouseofTutorAPI\\HouseofTutorAPI\\Models\\HouseofTutorDbContext.cs",
+              "RelativeToolTip": "HouseofTutorAPI\\Models\\HouseofTutorDbContext.cs",
+              "ViewState": "AgIAAEAEAAAAAAAAAAAAAEAEAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-15T08:27:40.459Z",
+              "EditorCaption": "",
+              "OwnerCaption": "%2"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "AdminController.cs",
+              "DocumentMoniker": "D:\\FYP IMP\\HouseofTutorAPI\\HouseofTutorAPI\\Controllers\\AdminController.cs",
+              "RelativeDocumentMoniker": "HouseofTutorAPI\\Controllers\\AdminController.cs",
+              "ToolTip": "D:\\FYP IMP\\HouseofTutorAPI\\HouseofTutorAPI\\Controllers\\AdminController.cs",
+              "RelativeToolTip": "HouseofTutorAPI\\Controllers\\AdminController.cs",
+              "ViewState": "AgIAAE0IAAAAAAAAAADwv2sIAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-15T06:34:37.056Z",
+              "EditorCaption": "",
+              "OwnerCaption": "%2"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "StudentController.cs",
+              "DocumentMoniker": "D:\\FYP IMP\\HouseofTutorAPI\\HouseofTutorAPI\\Controllers\\StudentController.cs",
+              "RelativeDocumentMoniker": "HouseofTutorAPI\\Controllers\\StudentController.cs",
+              "ToolTip": "D:\\FYP IMP\\HouseofTutorAPI\\HouseofTutorAPI\\Controllers\\StudentController.cs",
+              "RelativeToolTip": "HouseofTutorAPI\\Controllers\\StudentController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFoMAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-03T10:31:19.749Z",
+              "OwnerCaption": "%2"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

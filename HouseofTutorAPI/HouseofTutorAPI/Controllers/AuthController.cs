@@ -1,0 +1,1326 @@
+﻿using Azure;
+using HouseofTutorAPI.Models;
+using HouseofTutorAPI.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Win32;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Principal;
+using System.Text;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace HouseofTutorAPI.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthController : ControllerBase
+    {
+        private readonly HouseofTutorDbContext db;
+        private readonly GeoService _geoService;
+        private readonly IConfiguration _configuration;
+
+        public AuthController(HouseofTutorDbContext _db, IConfiguration configuration, GeoService geoService)
+        {
+            db = _db;
+            _configuration = configuration;
+            _geoService = geoService;
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDTO dto)
+        {
+            using var transaction = await db.Database.BeginTransactionAsync();
+
+            try
+            {
+                // =====================================================
+                // 1. VALIDATE REQUEST
+                // =====================================================
+
+                if (dto == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid data."
+                    });
+                }
+
+                // =====================================================
+                // 2. NORMALIZE ROLE
+                // =====================================================
+
+                string role = dto.role?.Trim() ?? "";
+
+                if (role.Equals("student", StringComparison.OrdinalIgnoreCase))
+                {
+                    role = "Student";
+                }
+                else if (role.Equals("tutor", StringComparison.OrdinalIgnoreCase))
+                {
+                    role = "Tutor";
+                }
+                else
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid role. Only Student and Tutor can register."
+                    });
+                }
+
+                // =====================================================
+                // 3. NORMALIZE EMAIL
+                // =====================================================
+
+                dto.email = dto.email?.Trim().ToLower();
+
+                if (string.IsNullOrWhiteSpace(dto.email))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Email is required."
+                    });
+                }
+
+                // =====================================================
+                // 4. PASSWORD VALIDATION
+                // =====================================================
+
+                string password = dto.password ?? "";
+
+                // Minimum 8 characters
+                if (password.Length < 8)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Password must be at least 8 characters long."
+                    });
+                }
+
+                // At least one uppercase letter
+                if (!password.Any(char.IsUpper))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Password must contain at least one capital letter (A-Z)."
+                    });
+                }
+
+                // At least one lowercase letter
+                if (!password.Any(char.IsLower))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Password must contain at least one small letter (a-z)."
+                    });
+                }
+
+                // At least one number
+                if (!password.Any(char.IsDigit))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Password must contain at least one number (0-9)."
+                    });
+                }
+
+                // At least one special character
+                if (!password.Any(c => !char.IsLetterOrDigit(c)))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Password must contain at least one special character (@, #, $, !, etc.)."
+                    });
+                }
+
+                // =====================================================
+                // 5. NORMALIZE FATHER CNIC
+                // =====================================================
+
+                string fatherCnic = dto.FatherCNIC?
+                    .Replace("-", "")
+                    .Trim() ?? "";
+
+                // =====================================================
+                // 6. STUDENT VALIDATION
+                // =====================================================
+
+                if (role == "Student")
+                {
+                    // Father CNIC
+                    if (string.IsNullOrWhiteSpace(fatherCnic))
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Father CNIC is required."
+                        });
+                    }
+
+                    if (fatherCnic.Length < 5)
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Father CNIC must contain at least 5 digits."
+                        });
+                    }
+
+                    // Fee Responsibility
+                    string feeResponsibility =
+                        dto.feeResponsibility?.Trim() ?? "";
+
+                    if (!feeResponsibility.Equals(
+                            "ByMe",
+                            StringComparison.OrdinalIgnoreCase) &&
+                        !feeResponsibility.Equals(
+                            "ByParent",
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Fee responsibility must be either ByMe or ByParent."
+                        });
+                    }
+                }
+
+                // =====================================================
+                // 7. TUTOR VALIDATION
+                // =====================================================
+
+                string? normalizedTeachingMode = null;
+
+                if (role == "Tutor")
+                {
+                    string teachingMode =
+                        dto.teachingMode?.Trim() ?? "";
+
+                    // VISITING TUTOR
+                    if (teachingMode.Equals(
+                            "Visiting",
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        normalizedTeachingMode = "Visiting";
+
+                        // Radius is required
+                        if (!dto.radius.HasValue)
+                        {
+                            return BadRequest(new
+                            {
+                                message = "Radius is required for Visiting tutors."
+                            });
+                        }
+
+                        if (dto.radius.Value <= 0)
+                        {
+                            return BadRequest(new
+                            {
+                                message = "Radius must be greater than 0 for Visiting tutors."
+                            });
+                        }
+                    }
+
+                    // NON-VISITING TUTOR
+                    else if (teachingMode.Equals(
+                                 "Non-Visiting",
+                                 StringComparison.OrdinalIgnoreCase))
+                    {
+                        normalizedTeachingMode = "Non-Visiting";
+
+                        // Radius, Latitude, Longitude and Location
+                        // can remain NULL.
+                    }
+
+                    // INVALID TEACHING MODE
+                    else
+                    {
+                        return BadRequest(new
+                        {
+                            message = "Teaching mode must be either Visiting or Non-Visiting."
+                        });
+                    }
+                }
+
+                // =====================================================
+                // 8. CHECK EMAIL
+                // =====================================================
+
+                if (await db.Users.AnyAsync(u => u.Email == dto.email))
+                {
+                    return BadRequest(new
+                    {
+                        message = "Email already exists."
+                    });
+                }
+
+                // =====================================================
+                // 9. CREATE USER
+                // =====================================================
+
+                var user = new User
+                {
+                    FullName = dto.fullName,
+                    Email = dto.email,
+                    Phone = dto.phone,
+                    Cnic = dto.cnic,
+                    Password = password,
+                    Role = role
+                };
+
+                db.Users.Add(user);
+
+                await db.SaveChangesAsync();
+
+                // =====================================================
+                // 10. STUDENT REGISTRATION
+                // =====================================================
+
+                if (role == "Student")
+                {
+                    var student = new Student
+                    {
+                        UserId = user.UserId,
+                        FatherCnic = fatherCnic,
+                        Location = null,
+                        Latitude = null,
+                        Longitude = null,
+                        FeeResponsibility = dto.feeResponsibility
+                    };
+
+                    db.Students.Add(student);
+
+                    // Check whether Parent already exists
+                    bool parentExists = await db.Users.AnyAsync(x =>
+                        x.Role == "Parent" &&
+                        x.Cnic == fatherCnic);
+
+                    // Create Parent if not exists
+                    if (!parentExists)
+                    {
+                        string parentPassword =
+                            fatherCnic.Substring(
+                                fatherCnic.Length - 5,
+                                5
+                            );
+
+                        var parentUser = new User
+                        {
+                            FullName = "Parent",
+                            Email = fatherCnic,
+                            Phone = null,
+                            Cnic = fatherCnic,
+                            Password = parentPassword,
+                            Role = "Parent"
+                        };
+
+                        db.Users.Add(parentUser);
+                    }
+                }
+
+                // =====================================================
+                // 11. TUTOR REGISTRATION
+                // =====================================================
+
+                else if (role == "Tutor")
+                {
+                    var tutor = new Tutor
+                    {
+                        UserId = user.UserId,
+
+                        Qualification = dto.qualification,
+
+                        Experience = dto.experience ?? 0,
+
+                        // Visiting = actual radius
+                        // Non-Visiting = NULL
+                        Radius = normalizedTeachingMode == "Visiting"
+                            ? dto.radius
+                            : null,
+
+                        // Initially NULL for both modes
+                        Location = null,
+                        Latitude = null,
+                        Longitude = null,
+
+                        Status = "Pending",
+
+                        TeachingMode = normalizedTeachingMode
+                    };
+
+                    db.Tutors.Add(tutor);
+                }
+
+                // =====================================================
+                // 12. SAVE CHANGES
+                // =====================================================
+
+                await db.SaveChangesAsync();
+
+                // =====================================================
+                // 13. COMMIT TRANSACTION
+                // =====================================================
+
+                await transaction.CommitAsync();
+
+                // =====================================================
+                // 14. SUCCESS RESPONSE
+                // =====================================================
+
+                return Ok(new
+                {
+                    message = "User registered successfully.",
+
+                    userId = user.UserId,
+
+                    role = role,
+
+                    feeResponsibility =
+                        role == "Student"
+                            ? dto.feeResponsibility
+                            : null,
+
+                    teachingMode =
+                        role == "Tutor"
+                            ? normalizedTeachingMode
+                            : null,
+
+                    radius =
+                        role == "Tutor" &&
+                        normalizedTeachingMode == "Visiting"
+                            ? dto.radius
+                            : null
+                });
+            }
+            catch (Exception ex)
+            {
+                // =====================================================
+                // 15. ROLLBACK TRANSACTION
+                // =====================================================
+
+                await transaction.RollbackAsync();
+
+                // Get database error
+                string errorMessage = ex.Message;
+
+                if (ex.InnerException != null)
+                {
+                    errorMessage +=
+                        " | Inner: " +
+                        ex.InnerException.Message;
+                }
+
+                return BadRequest(new
+                {
+                    message = errorMessage
+                });
+            }
+        }
+
+        //[HttpPost("register")]
+        //public async Task<IActionResult> Register([FromBody] RegisterDTO dto)
+        //{
+        //    using var transaction = await db.Database.BeginTransactionAsync();
+
+        //    try
+        //    {
+        //        // =====================================================
+        //        // 1. VALIDATE REQUEST
+        //        // =====================================================
+
+        //        if (dto == null)
+        //        {
+        //            return BadRequest(new
+        //            {
+        //                message = "Invalid data."
+        //            });
+        //        }
+
+        //        // =====================================================
+        //        // 2. NORMALIZE ROLE
+        //        // =====================================================
+
+        //        string role = dto.role?.Trim() ?? "";
+
+        //        if (role.Equals("student", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            role = "Student";
+        //        }
+        //        else if (role.Equals("tutor", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            role = "Tutor";
+        //        }
+        //        else
+        //        {
+        //            return BadRequest(new
+        //            {
+        //                message = "Invalid role. Only Student and Tutor can register."
+        //            });
+        //        }
+
+        //        // =====================================================
+        //        // 3. NORMALIZE EMAIL
+        //        // =====================================================
+
+        //        dto.email = dto.email?.Trim().ToLower();
+
+        //        if (string.IsNullOrWhiteSpace(dto.email))
+        //        {
+        //            return BadRequest(new
+        //            {
+        //                message = "Email is required."
+        //            });
+        //        }
+
+        //        // =====================================================
+        //        // 4. NORMALIZE FATHER CNIC
+        //        // =====================================================
+
+        //        string fatherCnic = dto.FatherCNIC?
+        //            .Replace("-", "")
+        //            .Trim() ?? "";
+
+        //        // =====================================================
+        //        // 5. STUDENT VALIDATION
+        //        // =====================================================
+
+        //        if (role == "Student")
+        //        {
+        //            // -------------------------------------------------
+        //            // Father CNIC
+        //            // -------------------------------------------------
+
+        //            if (string.IsNullOrWhiteSpace(fatherCnic))
+        //            {
+        //                return BadRequest(new
+        //                {
+        //                    message = "Father CNIC is required."
+        //                });
+        //            }
+
+        //            if (fatherCnic.Length < 5)
+        //            {
+        //                return BadRequest(new
+        //                {
+        //                    message = "Father CNIC must contain at least 5 digits."
+        //                });
+        //            }
+
+        //            // -------------------------------------------------
+        //            // Fee Responsibility
+        //            // -------------------------------------------------
+
+        //            string feeResponsibility =
+        //                dto.feeResponsibility?.Trim() ?? "";
+
+        //            if (!feeResponsibility.Equals(
+        //                    "ByMe",
+        //                    StringComparison.OrdinalIgnoreCase) &&
+        //                !feeResponsibility.Equals(
+        //                    "ByParent",
+        //                    StringComparison.OrdinalIgnoreCase))
+        //            {
+        //                return BadRequest(new
+        //                {
+        //                    message =
+        //                        "Fee responsibility must be either ByMe or ByParent."
+        //                });
+        //            }
+        //        }
+
+        //        // =====================================================
+        //        // 6. TUTOR VALIDATION
+        //        // =====================================================
+
+        //        string? normalizedTeachingMode = null;
+
+        //        if (role == "Tutor")
+        //        {
+        //            // -------------------------------------------------
+        //            // Get Teaching Mode
+        //            // -------------------------------------------------
+
+        //            string teachingMode =
+        //                dto.teachingMode?.Trim() ?? "";
+
+        //            // -------------------------------------------------
+        //            // VISITING
+        //            // -------------------------------------------------
+
+        //            if (teachingMode.Equals(
+        //                    "Visiting",
+        //                    StringComparison.OrdinalIgnoreCase))
+        //            {
+        //                normalizedTeachingMode = "Visiting";
+
+        //                // =================================================
+        //                // Visiting Tutor MUST provide Radius
+        //                // =================================================
+
+        //                if (!dto.radius.HasValue)
+        //                {
+        //                    return BadRequest(new
+        //                    {
+        //                        message =
+        //                            "Radius is required for Visiting tutors."
+        //                    });
+        //                }
+
+        //                if (dto.radius.Value <= 0)
+        //                {
+        //                    return BadRequest(new
+        //                    {
+        //                        message =
+        //                            "Radius must be greater than 0 for Visiting tutors."
+        //                    });
+        //                }
+        //            }
+
+        //            // -------------------------------------------------
+        //            // NON-VISITING
+        //            // -------------------------------------------------
+
+        //            else if (teachingMode.Equals(
+        //                    "Non-Visiting",
+        //                    StringComparison.OrdinalIgnoreCase))
+        //            {
+        //                normalizedTeachingMode = "Non-Visiting";
+
+        //                // =================================================
+        //                // Non-Visiting Tutor
+        //                //
+        //                // Radius can be NULL
+        //                // Latitude can be NULL
+        //                // Longitude can be NULL
+        //                // Location can be NULL
+        //                // =================================================
+        //            }
+
+        //            // -------------------------------------------------
+        //            // INVALID TEACHING MODE
+        //            // -------------------------------------------------
+
+        //            else
+        //            {
+        //                return BadRequest(new
+        //                {
+        //                    message =
+        //                        "Teaching mode must be either Visiting or Non-Visiting."
+        //                });
+        //            }
+        //        }
+
+        //        // =====================================================
+        //        // 7. CHECK EMAIL
+        //        // =====================================================
+
+        //        if (await db.Users.AnyAsync(u => u.Email == dto.email))
+        //        {
+        //            return BadRequest(new
+        //            {
+        //                message = "Email already exists."
+        //            });
+        //        }
+
+        //        // =====================================================
+        //        // 8. CREATE USER
+        //        // =====================================================
+
+        //        var user = new User
+        //        {
+        //            FullName = dto.fullName,
+        //            Email = dto.email,
+        //            Phone = dto.phone,
+        //            Cnic = dto.cnic,
+        //            Password = dto.password,
+        //            Role = role
+        //        };
+
+        //        db.Users.Add(user);
+
+        //        await db.SaveChangesAsync();
+
+        //        // =====================================================
+        //        // 9. STUDENT
+        //        // =====================================================
+
+        //        if (role == "Student")
+        //        {
+        //            var student = new Student
+        //            {
+        //                UserId = user.UserId,
+
+        //                FatherCnic = fatherCnic,
+
+        //                Location = null,
+
+        //                Latitude = null,
+
+        //                Longitude = null,
+
+        //                FeeResponsibility = dto.feeResponsibility
+        //            };
+
+        //            db.Students.Add(student);
+
+        //            // -------------------------------------------------
+        //            // Check Parent
+        //            // -------------------------------------------------
+
+        //            bool parentExists = await db.Users.AnyAsync(x =>
+        //                x.Role == "Parent" &&
+        //                x.Cnic == fatherCnic);
+
+        //            // -------------------------------------------------
+        //            // Create Parent
+        //            // -------------------------------------------------
+
+        //            if (!parentExists)
+        //            {
+        //                string parentPassword =
+        //                    fatherCnic.Substring(
+        //                        fatherCnic.Length - 5,
+        //                        5
+        //                    );
+
+        //                var parentUser = new User
+        //                {
+        //                    FullName = "Parent",
+
+        //                    Email = fatherCnic,
+
+        //                    Phone = null,
+
+        //                    Cnic = fatherCnic,
+
+        //                    Password = parentPassword,
+
+        //                    Role = "Parent"
+        //                };
+
+        //                db.Users.Add(parentUser);
+        //            }
+        //        }
+
+        //        // =====================================================
+        //        // 10. TUTOR
+        //        // =====================================================
+
+        //        else if (role == "Tutor")
+        //        {
+        //            var tutor = new Tutor
+        //            {
+        //                UserId = user.UserId,
+
+        //                Qualification = dto.qualification,
+
+        //                Experience = dto.experience ?? 0,
+
+        //                // =================================================
+        //                // IMPORTANT:
+        //                //
+        //                // Visiting:
+        //                //     Radius = required value
+        //                //
+        //                // Non-Visiting:
+        //                //     Radius = NULL
+        //                // =================================================
+
+        //                Radius = normalizedTeachingMode == "Visiting"
+        //                    ? dto.radius
+        //                    : null,
+
+        //                // =================================================
+        //                // Location
+        //                //
+        //                // Both are initially NULL.
+        //                //
+        //                // Visiting:
+        //                //     Frontend goes to MapScreen and updates these.
+        //                //
+        //                // Non-Visiting:
+        //                //     They remain NULL.
+        //                // =================================================
+
+        //                Location = null,
+
+        //                Latitude = null,
+
+        //                Longitude = null,
+
+        //                Status = "Pending",
+
+        //                TeachingMode = normalizedTeachingMode
+        //            };
+
+        //            db.Tutors.Add(tutor);
+        //        }
+
+        //        // =====================================================
+        //        // 11. SAVE
+        //        // =====================================================
+
+        //        await db.SaveChangesAsync();
+
+        //        // =====================================================
+        //        // 12. COMMIT
+        //        // =====================================================
+
+        //        await transaction.CommitAsync();
+
+        //        // =====================================================
+        //        // 13. RESPONSE
+        //        // =====================================================
+
+        //        return Ok(new
+        //        {
+        //            message = "User registered successfully.",
+
+        //            userId = user.UserId,
+
+        //            role = role,
+
+        //            feeResponsibility =
+        //                role == "Student"
+        //                    ? dto.feeResponsibility
+        //                    : null,
+
+        //            teachingMode =
+        //                role == "Tutor"
+        //                    ? normalizedTeachingMode
+        //                    : null,
+
+        //            // =================================================
+        //            // Return Radius
+        //            //
+        //            // Visiting -> actual radius
+        //            // Non-Visiting -> null
+        //            // =================================================
+
+        //            radius =
+        //                role == "Tutor" &&
+        //                normalizedTeachingMode == "Visiting"
+        //                    ? dto.radius
+        //                    : null
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // =====================================================
+        //        // ROLLBACK
+        //        // =====================================================
+
+        //        await transaction.RollbackAsync();
+
+        //        // =====================================================
+        //        // GET DEEPEST DATABASE ERROR
+        //        // =====================================================
+
+        //        string errorMessage = ex.Message;
+
+        //        if (ex.InnerException != null)
+        //        {
+        //            errorMessage +=
+        //                " | Inner: " +
+        //                ex.InnerException.Message;
+        //        }
+
+        //        return BadRequest(new
+        //        {
+        //            message = errorMessage
+        //        });
+        //    }
+        //}
+
+        //[HttpPost("login")]
+        //public async Task<IActionResult> Login([FromBody] LoginDTO dto)
+        //{
+        //    if (dto == null ||
+        //        string.IsNullOrWhiteSpace(dto.Email) ||
+        //        string.IsNullOrWhiteSpace(dto.Password))
+        //    {
+        //        return BadRequest(new { message = "Email/CNIC and password required" });
+        //    }
+
+        //    string login = dto.Email.Trim();
+        //    string password = dto.Password.Trim();
+
+        //    string normalizedEmail = login.ToLower();
+        //    string normalizedCnic = login.Replace("-", "").Trim();
+
+        //    var user = await db.Users.FirstOrDefaultAsync(u =>
+        //        u.Email.ToLower() == normalizedEmail ||
+        //        u.Cnic.Replace("-", "") == normalizedCnic);
+
+        //    if (user == null)
+        //    {
+        //        return Unauthorized(new
+        //        {
+        //            message = "Invalid email/CNIC"
+        //        });
+        //    }
+
+        //    if ((user.Password ?? "").Trim() != password)
+        //    {
+        //        return Unauthorized(new
+        //        {
+        //            message = "Invalid password"
+        //        });
+        //    }
+
+        //    object? roleData = null;
+        //    double? latitude = null;
+        //    double? longitude = null;
+
+        //    if (user.Role == "Tutor")
+        //    {
+        //        var tutor = await db.Tutors
+        //            .FirstOrDefaultAsync(x => x.UserId == user.UserId);
+
+        //        if (tutor != null)
+        //        {
+        //            roleData = new
+        //            {
+        //                qualification = tutor.Qualification,
+        //                experience = tutor.Experience,
+        //                location = tutor.Location,
+        //                radius = tutor.Radius,
+        //                status = "Pending" // tutor.Status
+        //            };
+
+        //            latitude = tutor.Latitude;
+        //            longitude = tutor.Longitude;
+        //        }
+        //    }
+        //    else if (user.Role == "Student")
+        //    {
+        //        var student = await db.Students
+        //            .FirstOrDefaultAsync(x => x.UserId == user.UserId);
+
+        //        if (student != null)
+        //        {
+        //            roleData = new
+        //            {
+        //                location = student.Location
+        //            };
+
+        //            latitude = student.Latitude;
+        //            longitude = student.Longitude;
+        //        }
+        //    }
+        //    else if (user.Role == "Parent")
+        //    {
+        //        roleData = new
+        //        {
+        //            access = "Parent Access"
+        //        };
+        //    }
+        //    else if (user.Role == "Admin")
+        //    {
+        //        roleData = new
+        //        {
+        //            access = "Full Admin Access"
+        //        };
+        //    }
+
+        //    var token = GenerateJwtToken(
+        //        user.UserId.ToString(),
+        //        user.Role,
+        //        user.FullName,
+        //        user.Email,
+        //        latitude,
+        //        longitude
+        //    );
+
+        //    return Ok(new
+        //    {
+        //        token,
+        //        userId = user.UserId,
+        //        role = user.Role,
+        //        fullName = user.FullName,
+        //        email = user.Email,
+        //        phone = user.Phone,
+        //        roleData,
+        //        latitude,
+        //        longitude,
+        //        message = "Login successful"
+        //    });
+        //}
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDTO dto)
+        {
+            // =====================================================
+            // 1. VALIDATE REQUEST
+            // =====================================================
+
+            if (dto == null ||
+                string.IsNullOrWhiteSpace(dto.Email) ||
+                string.IsNullOrWhiteSpace(dto.Password))
+            {
+                return BadRequest(new
+                {
+                    message = "Email/CNIC and password required"
+                });
+            }
+
+            string login = dto.Email.Trim();
+            string password = dto.Password.Trim();
+
+            string normalizedEmail = login.ToLower();
+            string normalizedCnic = login.Replace("-", "").Trim();
+
+            // =====================================================
+            // 2. FIND USER BY EMAIL OR CNIC
+            // =====================================================
+
+            var user = await db.Users.FirstOrDefaultAsync(u =>
+                u.Email.ToLower() == normalizedEmail ||
+                u.Cnic.Replace("-", "") == normalizedCnic);
+
+            if (user == null)
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid email/CNIC"
+                });
+            }
+
+            // =====================================================
+            // 3. VERIFY PASSWORD
+            // =====================================================
+
+            if ((user.Password ?? "").Trim() != password)
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid password"
+                });
+            }
+
+            // =====================================================
+            // 4. INITIALIZE ROLE DATA
+            // =====================================================
+
+            object? roleData = null;
+
+            double? latitude = null;
+            double? longitude = null;
+
+            // =====================================================
+            // 5. TUTOR LOGIN
+            // =====================================================
+
+            if (user.Role == "Tutor")
+            {
+                var tutor = await db.Tutors
+                    .FirstOrDefaultAsync(x => x.UserId == user.UserId);
+
+                // Tutor record must exist
+                if (tutor == null)
+                {
+                    return Unauthorized(new
+                    {
+                        message = "Tutor account not found."
+                    });
+                }
+
+                // Blocked Tutor
+                if (string.Equals(
+                    tutor.Status,
+                    "Blocked",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return StatusCode(403, new
+                    {
+                        message = "Your tutor account has been blocked by Admin. Please contact the administrator."
+                    });
+                }
+
+                // Rejected Tutor
+                if (string.Equals(
+                    tutor.Status,
+                    "Rejected",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return StatusCode(403, new
+                    {
+                        message = "Your tutor account has been rejected by Admin."
+                    });
+                }
+
+                roleData = new
+                {
+                    qualification = tutor.Qualification,
+                    experience = tutor.Experience,
+                    location = tutor.Location,
+                    radius = tutor.Radius,
+                    status = tutor.Status
+                };
+
+                latitude = tutor.Latitude;
+                longitude = tutor.Longitude;
+            }
+
+            // =====================================================
+            // 6. STUDENT LOGIN
+            // =====================================================
+
+            else if (user.Role == "Student")
+            {
+                var student = await db.Students
+                    .FirstOrDefaultAsync(x => x.UserId == user.UserId);
+
+                // Student record must exist
+                if (student == null)
+                {
+                    return Unauthorized(new
+                    {
+                        message = "Student account not found."
+                    });
+                }
+
+                // Blocked Student
+                if (string.Equals(
+                    student.Status,
+                    "Blocked",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return StatusCode(403, new
+                    {
+                        message = "Your account has been blocked by Admin. Please contact the administrator."
+                    });
+                }
+
+                // Rejected Student
+                if (string.Equals(
+                    student.Status,
+                    "Rejected",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    return StatusCode(403, new
+                    {
+                        message = "Your account has been rejected by Admin."
+                    });
+                }
+
+                roleData = new
+                {
+                    location = student.Location
+                };
+
+                latitude = student.Latitude;
+                longitude = student.Longitude;
+            }
+
+            // =====================================================
+            // 7. PARENT LOGIN
+            // =====================================================
+
+            else if (user.Role == "Parent")
+            {
+                roleData = new
+                {
+                    access = "Parent Access"
+                };
+            }
+
+            // =====================================================
+            // 8. ADMIN LOGIN
+            // =====================================================
+
+            else if (user.Role == "Admin")
+            {
+                roleData = new
+                {
+                    access = "Full Admin Access"
+                };
+            }
+
+            // =====================================================
+            // 9. GENERATE JWT TOKEN
+            // Only allowed accounts reach this section
+            // =====================================================
+
+            var token = GenerateJwtToken(
+                user.UserId.ToString(),
+                user.Role,
+                user.FullName,
+                user.Email,
+                latitude,
+                longitude
+            );
+
+            // =====================================================
+            // 10. RETURN LOGIN RESPONSE
+            // =====================================================
+
+            return Ok(new
+            {
+                token,
+                userId = user.UserId,
+                role = user.Role,
+                fullName = user.FullName,
+                email = user.Email,
+                phone = user.Phone,
+                roleData,
+                latitude,
+                longitude,
+                message = "Login successful"
+            });
+        }
+
+
+        [HttpPost("update-location")]
+        public async Task<IActionResult> UpdateLocation([FromBody] UpdateLocationDTO dto)
+        {
+            try
+            {
+                if (dto == null)
+                    return BadRequest(new { message = "Invalid data" });
+
+                if (dto.Latitude == 0 || dto.Longitude == 0)
+                    return BadRequest(new { message = "Invalid coordinates" });
+
+                var user = await db.Users.FindAsync(dto.UserId);
+                if (user == null)
+                    return NotFound(new { message = "User not found" });
+
+                var address = await _geoService.GetAddressAsync(dto.Latitude, dto.Longitude);
+
+                Console.WriteLine($"Lat: {dto.Latitude}, Lng: {dto.Longitude}");
+                Console.WriteLine($"Address from OSM: {address}");
+
+                if (string.IsNullOrWhiteSpace(address))
+                {
+                    address = "Unknown location";
+                }
+
+                var role = user.Role?.Trim().ToLower();
+
+                if (role == "student")
+                {
+                    var student = await db.Students
+                        .FirstOrDefaultAsync(s => s.UserId == user.UserId);
+
+                    if (student == null)
+                        return NotFound(new { message = "Student not found" });
+
+                    student.Location = address;
+                    student.Latitude = dto.Latitude;
+                    student.Longitude = dto.Longitude;
+                }
+                else if (role == "tutor")
+                {
+                    var tutor = await db.Tutors
+                        .FirstOrDefaultAsync(t => t.UserId == user.UserId);
+
+                    if (tutor == null)
+                        return NotFound(new { message = "Tutor not found" });
+
+                    tutor.Location = address;
+                    tutor.Latitude = dto.Latitude;
+                    tutor.Longitude = dto.Longitude;
+                }
+                else
+                {
+                    return BadRequest(new { message = "Invalid user role" });
+                }
+
+                await db.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Location updated successfully",
+                    address = address,
+                    latitude = dto.Latitude,
+                    longitude = dto.Longitude
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(" ERROR: " + ex.Message);
+
+                return StatusCode(500, new
+                {
+                    message = "Internal server error",
+                    error = ex.Message
+                });
+            }
+        }
+
+        private string GenerateJwtToken(string userId, string role, string fullName, string email, double? latitude, double? longitude)
+        {
+            var keyString = _configuration["Jwt:Key"];
+
+            if (string.IsNullOrEmpty(keyString))
+                throw new Exception("JWT Key is NULL");
+
+            if (keyString.Length < 32)
+                throw new Exception("JWT Key too short (must be 32+ chars)");
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId),
+                new Claim(ClaimTypes.Role, role),
+                new Claim(ClaimTypes.Name, fullName),
+                new Claim(ClaimTypes.Email, email),
+
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+            if (latitude.HasValue)
+                claims.Add(new Claim("latitude", latitude.Value.ToString()));
+
+            if (longitude.HasValue)
+                claims.Add(new Claim("longitude", longitude.Value.ToString()));
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(7),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+    }
+    public class LoginDTO
+    {
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+    }
+
+    public class RegisterDTO
+    {
+        public string fullName { get; set; }
+        public string email { get; set; }
+        public string phone { get; set; }
+        public string cnic { get; set; }
+        public string password { get; set; }
+        public string role { get; set; }
+        public string? qualification { get; set; }
+        public int? experience { get; set; }
+        public int? radius { get; set; }
+        public string? location { get; set; }
+        public string? FatherCNIC { get; set; }
+        // Student:
+        // ByMe / Parent
+        public string? feeResponsibility { get; set; }
+
+        // Tutor:
+        // Visiting / Non-Visiting
+        public string? teachingMode { get; set; }
+    }
+
+    public class UpdateLocationDTO
+    {
+        public int UserId { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+}
